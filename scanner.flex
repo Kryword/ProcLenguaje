@@ -106,8 +106,11 @@ SINO \[\]
 	printf ("Literal Booleano: %s\n", yytext);
 }
 
+    /* En la posición 1 de yytext extará el carácter, 
+     * puesto que en la posición 0 estará la primera doble comilla 
+    */
 {LITERAL_CARACTER}	{
-	printf ("Literal Caracter: %s\n", yytext);
+	printf ("Literal Caracter: %s (%c)\n", yytext, yytext[1]);
 }
 
 {LITERAL_CADENA}	{
@@ -179,8 +182,12 @@ SINO \[\]
 	printf("Final de SI(If): %s\n", yytext);
 }
 
+{SINO}	{
+	printf("Si no: %s\n", yytext);
+	}
+
 {IDENTIFICADOR}	{
-	printf( "An identifier: %s\n", yytext );
+	printf( "Un identificador: %s\n", yytext );
 }
 
 {ASIGNACION} {
@@ -199,11 +206,11 @@ SINO \[\]
 
 [ \t\n]+          /* eat up whitespace */
 
-.           printf( "Unrecognized character: %s\n", yytext );
+.           printf( "Carácter desconocido: %s\n", yytext );
 
 %%
 
-main( argc, argv )
+int main( argc, argv )
 int argc;
 char **argv;
     {
