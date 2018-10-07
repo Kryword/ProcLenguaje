@@ -21,13 +21,15 @@ CADENA_COMILLA '
 LITERAL_BOOLEANO verdadero|falso
 TIPO (?i:(booleano|cadena|caracter|entero|real|tabla))
 
+DIVMOD (?i:(div|mod))
+OPERADOR_CALCULO {DIVMOD}|[+\-*]
 
 LITERAL_ENTERO {MASMENOS}?{DIGIT}+({EXPONENCIAL}{DIGIT}+)?
 LITERAL_REAL {MASMENOS}?{DIGIT}+(\.{DIGIT}+)?({EXPONENCIAL}{DIGIT}+)?
 LITERAL_CARACTER \"[^"]\"
 LITERAL_CADENA {CADENA_COMILLA}[^']*{CADENA_COMILLA}
 OPERADOR_LOGICO (?i:(y|o|no))
-OPERADOR_BOOLEANO <|>|>=|<=|=|!=
+OPERADOR_RELACIONAL <|>|>=|<=|=|!=
 
 /* Comienzos y finales de bucles */
 /* Mientras */
@@ -65,8 +67,6 @@ FTUPLA (?i:ftupla)
 VAR (?i:var)
 FVAR (?i:fvar)
 
-OPERADOR_CALCULO (?i:(div|mod|+|-|*))
-
 SI (?i:si)
 FSI (?i:fsi)
  
@@ -82,13 +82,16 @@ COMP_SECUENCIAL ;
 SUBRANGO ..
 
 /* A mirar más adelante
-TIPO_TABLA (?i:(tabla de {TIPO}\[{DIGIT}..{DIGIT}\]))
+    TIPO_TABLA (?i:(tabla de {TIPO}\[{DIGIT}..{DIGIT}\]))
 */
 SINO \[\]
 
 %%
+    /* TODO: El operador de Cálculo no funciona siempre, hay que verificar porque */
 
-
+{OPERADOR_CALCULO}  {
+	    printf("Operador de Cálculo: %s\n", yytext);
+}
 
 {LITERAL_ENTERO}	{
             printf( "Literal Entero: %s (%d)\n", yytext,
@@ -111,6 +114,7 @@ SINO \[\]
 	printf ("Literal Cadena: %s\n", yytext);
 }
 
+
 {TIPO}	{
 	printf( "Un Tipo: %s\n", yytext );
 }
@@ -131,11 +135,59 @@ SINO \[\]
 	printf("Final de Para: %s\n", yytext);
 }
 
+{HASTA}  {
+	printf("Hasta: %s\n", yytext);
+}
+
+{CONTINUAR}  {
+	printf("Continuar: %s\n", yytext);
+}
+
+{HACER}  {
+	printf("Hacer: %s\n", yytext);
+}
+
+{ALGORITMO}  {
+	printf("Inicio de Algoritmo: %s\n", yytext);
+}
+
+{FALGORITMO}  {
+	printf("Final de Algoritmo: %s\n", yytext);
+}
+
+{ACCION}  {
+	printf("Inicio de Acción: %s\n", yytext);
+}
+
+{FACCION}  {
+	printf("Final de Acción: %s\n", yytext);
+}
+
+{FUNCION}  {
+	printf("Inicio de Función: %s\n", yytext);
+}
+
+{FFUNCION}  {
+	printf("Final de Función: %s\n", yytext);
+}
+
+{SI}  {
+	printf("Inicio de SI(If): %s\n", yytext);
+}
+
+{FSI}  {
+	printf("Final de SI(If): %s\n", yytext);
+}
+
 {IDENTIFICADOR}	{
 	printf( "An identifier: %s\n", yytext );
 }
 
-{OPERADOR_BOOLEANO} {
+{ASIGNACION} {
+	printf("Asignación: %s\n", yytext);   
+}
+
+{OPERADOR_RELACIONAL} {
 	printf( "Operador Relacional: %s\n", yytext );
 }
 
