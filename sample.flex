@@ -1,7 +1,13 @@
-/* scanner for a toy Pascal-like language */
+/* Scanner para lenguaje de pseudocódigo */
+
+/*
+ *	Grupo:		25
+ *	Autores:	Cristian Berner y Andrea Zaratiegui
+ *	Lenguaje:	Flex v2.6
+ */
 
 %{
-/* need this for the call to atof() below */
+/* Zona para incluir las librerías necesarias */
 #include <math.h>
 %}
 LETRA	 [a-zA-Z]
@@ -21,6 +27,7 @@ LITERAL_REAL {MASMENOS}?{DIGIT}+(\.{DIGIT}+)?({EXPONENCIAL}{DIGIT}+)?
 LITERAL_CARACTER \"[^"]\"
 LITERAL_CADENA {CADENA_COMILLA}[^']*{CADENA_COMILLA}
 OPERADOR_LOGICO (?i:(y|o|no))
+OPERADOR_BOOLEANO <|>|>=|<=|=|!=
 
 /* Comienzos y finales de bucles */
 /* Mientras */
@@ -90,31 +97,39 @@ SINO \[\]
 
 {LITERAL_REAL}   {
             printf( "Literal Real: %s (%f)\n", yytext,
-                    atoi( yytext ) );
+                    atof( yytext ) );
             }
 {LITERAL_BOOLEANO}	{
-	printf ("Literal Booleano: %s (%s)\n", yytext,
-                    atoi( yytext ) );
+	printf ("Literal Booleano: %s\n", yytext);
 }
 
 {LITERAL_CARACTER}	{
-	printf ("Literal Caracter: %s (%c)\n", yytext,
-                    atoi( yytext ) );
+	printf ("Literal Caracter: %s\n", yytext);
 }
 
 {LITERAL_CADENA}	{
-	printf ("Literal Cadena: %s (%s)\n", yytext,
-                    atoi( yytext ) );
+	printf ("Literal Cadena: %s\n", yytext);
 }
 
 {TIPO}	{
 	printf( "Un Tipo: %s\n", yytext );
 }
 
+{MIENTRAS}  {
+	printf("Inicio de Mientras: %s\n", yytext);
+}
+
+{FMIENTRAS}  {
+	printf("Final de Mientras: %s\n", yytext);
+}
+
 {IDENTIFICADOR}	{
 	printf( "An identifier: %s\n", yytext );
 }
 
+{OPERADOR_BOOLEANO} {
+	printf( "Operador Relacional: %s\n", yytext );
+}
 
 
 	/* Comentario */
