@@ -123,6 +123,14 @@ SINO \[\]
 	printf("Final de Mientras: %s\n", yytext);
 }
 
+{PARA}  {
+	printf("Inicio de Para: %s\n", yytext);
+}
+
+{FPARA}  {
+	printf("Final de Para: %s\n", yytext);
+}
+
 {IDENTIFICADOR}	{
 	printf( "An identifier: %s\n", yytext );
 }
