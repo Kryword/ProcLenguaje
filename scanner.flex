@@ -337,7 +337,7 @@ CPARENTESIS \)
 	printf ("Comentario: %s \n", yytext);
 }
 
-[ \t\n]+          /* eat up whitespace */
+[ \t\n]+          /* Quitar espacios en blanco */
 
 .           printf( "Carácter desconocido: %s\n", yytext );
 
