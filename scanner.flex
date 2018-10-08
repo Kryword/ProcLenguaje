@@ -13,21 +13,36 @@
 LETRA	 [a-zA-Z]
 DIGIT    [0-9]
 IDENTIFICADOR       [a-zA-Z][a-zA-Z0-9]*
-MASMENOS [+-]
 EXPONENCIAL [Ee]
+DOSPUNTOS :
+COMPSEC ;
+SEPARADOR ,
 
-LITERAL_BOOLEANO verdadero|falso
-TIPO (?i:(booleano|cadena|caracter|entero|real|tabla))
+LITERAL_BOOLEANO (?i:(verdadero|falso))
+TIPO (?i:(booleano|cadena|caracter|entero|real))
+TABLA (?i:tabla)
+
+DE (?i:de)
 
 DIVMOD (?i:(div|mod))
-OPERADOR_CALCULO {DIVMOD}|[+\-*]
 
-LITERAL_ENTERO {MASMENOS}?{DIGIT}+({EXPONENCIAL}{DIGIT}+)?
-LITERAL_REAL {MASMENOS}?{DIGIT}+(\.{DIGIT}+)?({EXPONENCIAL}{DIGIT}+)?
+
+/* Literales para entero, real, carácter y cadena */
+LITERAL_ENTERO {DIGIT}+({EXPONENCIAL}{DIGIT}+)?
+LITERAL_REAL {DIGIT}+(\.{DIGIT}+)?({EXPONENCIAL}{DIGIT}+)?
 LITERAL_CARACTER \"[^"]\"
 LITERAL_CADENA '[^']*'
+
+/* Operadores lógicos, relacionales y de cálculo */
 OPERADOR_LOGICO (?i:(y|o|no))
 OPERADOR_RELACIONAL <|>|>=|<=|=|!=
+OPERADOR_CALCULO {DIVMOD}|[+\-*]
+
+/* Precondición, postcondición y comentarios */
+PREC \{Prec[^}]*\}
+POST \{Post[^}]*\}
+COMENTARIO \{[^}]*\}
+
 
 /* Comienzos y finales de bucles */
 /* Mientras */
@@ -52,40 +67,56 @@ FACCION (?i:faccion)
 /* Implementar solo funcion en vez de accion */
 FUNCION (?i:funcion)
 FFUNCION (?i:ffuncion)
-
+/* Declaración Constantes */
 CONST (?i:const)
 FCONST (?i:fconst)
 
+/* Declaración de tipos */
 CTIPO (?i:tipo)
 CFTIPO (?i:ftipo)
 
+/* Declaración de tuplas */
 TUPLA (?i:tupla)
 FTUPLA (?i:ftupla)
 
+/* Declaración de variables */
 VAR (?i:var)
 FVAR (?i:fvar)
 
+/* Si o If */
 SI (?i:si)
 FSI (?i:fsi)
+SINO \[\]
+ENTONCES ->
  
+/* Devolución en funciones */
 DEV (?i:dev)
+/* Tipos de variables, entrada, salida o e/s */
 ENT (?i:ent)
 SAL (?i:sal)
 ENTSAL (?i:e\/s)
 
+/* Tipo variable puntero */
 REF (?i:ref)
 
+/* Tokens de ayuda */
 ASIGNACION :=
-COMP_SECUENCIAL ;
-SUBRANGO ..
+SUBRANGO \.\.
 
-/* A mirar más adelante
-    TIPO_TABLA (?i:(tabla de {TIPO}\[{DIGIT}..{DIGIT}\]))
-*/
-SINO \[\]
+/* Son los accesos a elementos de tabla y se utilizan también para su declaración
+ *	Ejemplo: tabla de entero[1..10]
+ *		tabla[5]
+ */
+ACCESO \[
+FACCESO \]
+
+/* Inicio y final de paréntesis, se usan para agrupar operaciones
+ * y para los parámetros de las funciones/acciones
+ */
+APARENTESIS \(
+CPARENTESIS \)
 
 %%
-    /* TODO: El operador de Cálculo no funciona siempre, hay que verificar porque */
 
 {OPERADOR_CALCULO}  {
 	    printf("Operador de Cálculo: %s\n", yytext);
@@ -117,7 +148,15 @@ SINO \[\]
 
 
 {TIPO}	{
-	printf( "Un Tipo: %s\n", yytext );
+	printf( "Tipo: %s\n", yytext );
+}
+
+{ACCESO}	{
+	printf( "Inicio de acceso: %s\n", yytext );
+}
+
+{FACCESO}	{
+	printf( "Final de acceso: %s\n", yytext );
 }
 
 {MIENTRAS}  {
@@ -182,10 +221,99 @@ SINO \[\]
 
 {SINO}	{
 	printf("Si no: %s\n", yytext);
-	}
+}
+
+{ENTONCES}	{
+	printf("Entonces: %s\n", yytext);
+}
+
+{DE}	{
+	printf("De: %s\n", yytext);
+}
+
+
+{CONST}  {
+	printf("Inicio declaración Constantes: %s\n", yytext);
+}
+
+{FCONST}  {
+	printf("Final declaración Constantes: %s\n", yytext);
+}
+
+{CTIPO}  {
+	printf("Inicio declaración Tipo: %s\n", yytext);
+}
+
+{CFTIPO}  {
+	printf("Final declaración Tipo: %s\n", yytext);
+}
+{TUPLA}  {
+	printf("Inicio declaración Tupla: %s\n", yytext);
+}
+
+{FTUPLA}  {
+	printf("Final declaración Tupla: %s\n", yytext);
+}
+{VAR}  {
+	printf("Inicio declaración Variables: %s\n", yytext);
+}
+
+{FVAR}  {
+	printf("Final declaración Variables: %s\n", yytext);
+}
+{DEV}  {
+	printf("Devolver: %s\n", yytext);
+}
+
+{ENT}  {
+	printf("Variable entrada: %s\n", yytext);
+}
+{SAL}  {
+	printf("Variable salida: %s\n", yytext);
+}
+
+{ENTSAL}  {
+	printf("Variable entrada/salida: %s\n", yytext);
+}
+
+{REF}  {
+	printf("Variable referenciada(puntero): %s\n", yytext);
+}
+
+{DOSPUNTOS}  {
+	printf("Declaración: %s\n", yytext);
+}
+
+{COMPSEC}  {
+	printf("Composición Secuencial: %s\n", yytext);
+}
+
+{SEPARADOR}  {
+	printf("Separador: %s\n", yytext);
+}
+
+{OPERADOR_LOGICO}  {
+	printf("Operador Lógico: %s\n", yytext);
+}
+
+{SUBRANGO}  {
+	printf("Subrango: %s\n", yytext);
+}
+
+{APARENTESIS}  {
+	printf("Abrir paréntesis: %s\n", yytext);
+}
+
+{CPARENTESIS}  {
+	printf("Cerrar paréntesis: %s\n", yytext);
+}
+
+{TABLA}  {
+	printf("Tabla: %s\n", yytext);
+}
 
 {IDENTIFICADOR}	{
-	printf( "Un identificador: %s\n", yytext );
+	printf( "Identificador: %s\n", yytext );
 }
 
 {ASIGNACION} {
@@ -196,9 +324,16 @@ SINO \[\]
 	printf( "Operador Relacional: %s\n", yytext );
 }
 
+{PREC}	{
+	printf ("Precondición: %s \n", yytext);
+}
+
+{POST}	{
+	printf ("Postcondición: %s \n", yytext);
+}
 
 	/* Comentario */
-"{"[^}]*"}"	{
+{COMENTARIO}	{
 	printf ("Comentario: %s \n", yytext);
 }
 
