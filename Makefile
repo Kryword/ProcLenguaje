@@ -1,5 +1,5 @@
 CC=gcc
-DEPS=scanner.flex
+DEPS=scanner.l
 CFILES=lex.yy.c
 LIBS=-lfl
 FLEX=flex

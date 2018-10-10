@@ -12,7 +12,7 @@
 %}
 LETRA	 [a-zA-Z]
 DIGIT    [0-9]
-IDENTIFICADOR       [a-zA-Z][a-zA-Z0-9]*
+IDENTIFICADOR       [a-zA-Z_][a-zA-Z0-9_]*
 EXPONENCIAL [Ee]
 DOSPUNTOS :
 COMPSEC ;
