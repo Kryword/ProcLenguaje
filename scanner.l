@@ -10,9 +10,15 @@
 /* Zona para incluir las librerías necesarias */
 #include <math.h>
 %}
-LETRA	 [a-zA-Z]
+
+    /*
+    *	Hemos decidido permitir que se utilicen también
+    *	carácteres del alfabeto español para el lenguaje.
+    *	De ahí la necesidad de incluirlos en LETRA
+    */
+LETRA	 [a-zA-ZñÑáéíóúÁÉÍÓÚüÜ]
 DIGIT    [0-9]
-IDENTIFICADOR       [a-zA-Z_][a-zA-Z0-9_]*
+IDENTIFICADOR       ({LETRA}|_)({LETRA}|{DIGIT}|_)*
 EXPONENCIAL [Ee]
 DOSPUNTOS :
 COMPSEC ;

@@ -1,0 +1,36 @@
+///////////////////////
+// Somos el grupo 25 //
+///////////////////////
+//  Cristian Berner  //
+//         y         //
+// Andrea Zaratiegui //
+///////////////////////
+
+En este documento explicaré algunas de las cosas que hemos tomado en
+consideración a la hora de hacer el scanner. También incluimos la información
+para compilarlo correctamente
+
+Identificadores: Hemos añadido el soporte para la ñ y las vocales con tilde a la hora
+de crear identificadores. Ahora los identificadores pueden incluir esas
+letras.
+
+## Compilación
+
+Para compilar el programa basta con escribir make dentro de la misma carpeta.
+Esto creará el archivo lex.yy.c y lo compilará justamente después. El scanner
+será el archivo a.out
+
+## Ejecución de ejemplos
+
+Por último le comento que los archivos programaX.alg son programas de ejemplo
+que nuestro scanner soporta. Los tres primeros son los mismos que en el
+documento de prácticas, el último es uno que hemos creado nosotros para
+demostrar como funcionan algunas cosas como los comentarios y las Ñs.
+
+Para ejecutar estos programas basta con escribir ./a.out programaX.alg siendo
+X el número del programa a escanear. 
+
+## Clean
+
+Finalmente me gustaría mencionar que escribiendo "make clean" dentro de la
+carpeta del scanner se eliminará el ejecutable y el archivo lex.yy.c.
