@@ -6,6 +6,7 @@ LIBS=-lfl -lm
 FLEX=flex
 BISON=bison
 BOPTIONS=-v -d
+TOCLEAN=gramatica.tab.c gramatica.tab.h lex.yy.c lex.yy.o gramatica.output a.out
 
 default: bison flex
 	$(CC) -c $(CFILES).c
@@ -15,5 +16,4 @@ flex: $(DEPS)
 bison: $(BNAME).y
 	$(BISON) $(BOPTIONS) $^ 
 clean: 
-	rm a.out
-	rm lex.yy.c
+	rm $(TOCLEAN)
