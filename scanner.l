@@ -1,7 +1,7 @@
 /* Scanner para lenguaje de pseudocódigo */
 
 /*
- *	Grupo:		25
+ *	Grupo:		21
  *	Autores:	Cristian Berner y Andrea Zaratiegui
  *	Lenguaje:	Flex v2.6
  */
@@ -9,6 +9,7 @@
 %{
 /* Zona para incluir las librerías necesarias */
 #include <math.h>
+#include "gramatica.tab.h"
 %}
 
     /*
@@ -195,10 +196,12 @@ CPARENTESIS \)
 
 {ALGORITMO}  {
 	printf("Inicio de Algoritmo: %s\n", yytext);
+	return T_BALGORITMO;
 }
 
 {FALGORITMO}  {
 	printf("Final de Algoritmo: %s\n", yytext);
+	return T_FALGORITMO;
 }
 
 {ACCION}  {
@@ -240,18 +243,22 @@ CPARENTESIS \)
 
 {CONST}  {
 	printf("Inicio declaración Constantes: %s\n", yytext);
+	return T_CONST;
 }
 
 {FCONST}  {
 	printf("Final declaración Constantes: %s\n", yytext);
+	return T_FCONST;
 }
 
 {CTIPO}  {
 	printf("Inicio declaración Tipo: %s\n", yytext);
+	return T_BTIPO;
 }
 
 {CFTIPO}  {
 	printf("Final declaración Tipo: %s\n", yytext);
+	return T_FTIPO;
 }
 {TUPLA}  {
 	printf("Inicio declaración Tupla: %s\n", yytext);
@@ -292,6 +299,7 @@ CPARENTESIS \)
 
 {COMPSEC}  {
 	printf("Composición Secuencial: %s\n", yytext);
+	return T_SEC;
 }
 
 {SEPARADOR}  {
@@ -320,6 +328,7 @@ CPARENTESIS \)
 
 {IDENTIFICADOR}	{
 	printf( "Identificador: %s\n", yytext );
+	return T_IDENTIFICADOR;
 }
 
 {ASIGNACION} {
@@ -332,6 +341,7 @@ CPARENTESIS \)
 
 {PREC}	{
 	printf ("Precondición: %s \n", yytext);
+	return T_PREC;
 }
 
 {POST}	{
@@ -349,15 +359,3 @@ CPARENTESIS \)
 
 %%
 
-int main( argc, argv )
-int argc;
-char **argv;
-    {
-    ++argv, --argc;  /* skip over program name */
-    if ( argc > 0 )
-            yyin = fopen( argv[0], "r" );
-    else
-            yyin = stdin;
-
-    yylex();
-    }
