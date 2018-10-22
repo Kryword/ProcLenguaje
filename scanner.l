@@ -25,14 +25,11 @@ DOSPUNTOS :
 COMPSEC ;
 SEPARADOR ,
 
-LITERAL_BOOLEANO (?i:(verdadero|falso))
+
 TIPO (?i:(booleano|cadena|caracter|entero|real))
 TABLA (?i:tabla)
 
 DE (?i:de)
-
-DIVMOD (?i:(div|mod))
-
 
 /* Literales para entero, real, carácter y cadena */
 LITERAL_ENTERO {DIGIT}+({EXPONENCIAL}{DIGIT}+)?
@@ -41,9 +38,22 @@ LITERAL_CARACTER \"[^"]\"
 LITERAL_CADENA '[^']*'
 
 /* Operadores lógicos, relacionales y de cálculo */
-OPERADOR_LOGICO (?i:(y|o|no))
+BOOLY (?i:y)
+BOOLO (?i:o)
+NO (?i:no)
 OPERADOR_RELACIONAL <|>|>=|<=|=|!=
-OPERADOR_CALCULO {DIVMOD}|[+\-*]
+VERDADERO (?i:verdadero)
+FALSO (?i:falso)
+
+
+/* Separo los operadores de cálculo para que bison los entienda */
+OPERADOR_CALCULO [+\-*]
+PLUS \+
+MINUS \-
+POR \*
+DIV \/
+DIVE (?i:div)
+MOD (?i:mod)
 
 /* Precondición, postcondición y comentarios */
 PREC \{Prec[^}]*\}
@@ -123,23 +133,54 @@ FACCESO \]
 APARENTESIS \(
 CPARENTESIS \)
 
+PUNTO \.
+
 %%
 
-{OPERADOR_CALCULO}  {
-	    printf("Operador de Cálculo: %s\n", yytext);
+{PLUS} {
+	printf("PLUS: %s\n", yytext);
+		return T_PLUS;
+}
+{MINUS} {
+	printf("MINUS: %s\n", yytext);
+		return T_MINUS;
+}
+{POR} {
+	printf("POR: %s\n", yytext);
+		return T_POR;
+}
+{DIV} {
+	printf("DIV: %s\n", yytext);
+		return T_DIV;
+}
+{DIVE} {
+	printf("División entera: %s\n", yytext);
+		return T_DIVE;
+}
+{MOD} {
+	printf("Módulo: %s\n", yytext);
+		return T_MOD;
 }
 
 {LITERAL_ENTERO}	{
             printf( "Literal Entero: %s (%d)\n", yytext,
                     atoi( yytext ) );
+		return T_LITERAL_NUMERICO;
             }
 
 {LITERAL_REAL}   {
             printf( "Literal Real: %s (%f)\n", yytext,
                     atof( yytext ) );
+		return T_LITERAL_NUMERICO;
             }
-{LITERAL_BOOLEANO}	{
+{VERDADERO}	{
 	printf ("Literal Booleano: %s\n", yytext);
+	return T_VERDADERO;
+}
+
+{FALSO}	{
+	printf ("Literal Booleano: %s\n", yytext);
+	return T_FALSO;
 }
 
     /* En la posición 1 de yytext extará el carácter, 
@@ -147,6 +188,7 @@ CPARENTESIS \)
     */
 {LITERAL_CARACTER}	{
 	printf ("Literal Caracter: %s (%c)\n", yytext, yytext[1]);
+	return T_LITERAL_CARACTER;
 }
 
 {LITERAL_CADENA}	{
@@ -156,42 +198,52 @@ CPARENTESIS \)
 
 {TIPO}	{
 	printf( "Tipo: %s\n", yytext );
+	return T_TIPOBASE;
 }
 
 {ACCESO}	{
 	printf( "Inicio de acceso: %s\n", yytext );
+	return T_ACCESO;
 }
 
 {FACCESO}	{
 	printf( "Final de acceso: %s\n", yytext );
+	return T_FACCESO;
 }
 
 {MIENTRAS}  {
 	printf("Inicio de Mientras: %s\n", yytext);
+	return T_MIENTRAS;
 }
 
 {FMIENTRAS}  {
 	printf("Final de Mientras: %s\n", yytext);
+	return T_FMIENTRAS;
 }
 
 {PARA}  {
 	printf("Inicio de Para: %s\n", yytext);
+	return T_PARA;
 }
 
 {FPARA}  {
 	printf("Final de Para: %s\n", yytext);
+	return T_FPARA;
 }
 
 {HASTA}  {
 	printf("Hasta: %s\n", yytext);
+	return T_HASTA;
 }
 
 {CONTINUAR}  {
 	printf("Continuar: %s\n", yytext);
+	return T_CONTINUAR;
 }
 
 {HACER}  {
 	printf("Hacer: %s\n", yytext);
+	return T_HACER;
 }
 
 {ALGORITMO}  {
@@ -206,38 +258,47 @@ CPARENTESIS \)
 
 {ACCION}  {
 	printf("Inicio de Acción: %s\n", yytext);
+	return T_ACCION;
 }
 
 {FACCION}  {
 	printf("Final de Acción: %s\n", yytext);
+	return T_FACCION;
 }
 
 {FUNCION}  {
 	printf("Inicio de Función: %s\n", yytext);
+	return T_FUNCION;
 }
 
 {FFUNCION}  {
 	printf("Final de Función: %s\n", yytext);
+	return T_FFUNCION;
 }
 
 {SI}  {
 	printf("Inicio de SI(If): %s\n", yytext);
+	return T_SI;
 }
 
 {FSI}  {
 	printf("Final de SI(If): %s\n", yytext);
+	return T_FSI;
 }
 
 {SINO}	{
 	printf("Si no: %s\n", yytext);
+	return T_SINO;
 }
 
 {ENTONCES}	{
 	printf("Entonces: %s\n", yytext);
+	return T_ENTONCES;
 }
 
 {DE}	{
 	printf("De: %s\n", yytext);
+	return T_DE;
 }
 
 
@@ -262,39 +323,49 @@ CPARENTESIS \)
 }
 {TUPLA}  {
 	printf("Inicio declaración Tupla: %s\n", yytext);
+	return T_TUPLA;
 }
 
 {FTUPLA}  {
 	printf("Final declaración Tupla: %s\n", yytext);
+	return T_FTUPLA;
 }
 {VAR}  {
 	printf("Inicio declaración Variables: %s\n", yytext);
+	return T_VAR;
 }
 
 {FVAR}  {
 	printf("Final declaración Variables: %s\n", yytext);
+	return T_FVAR;
 }
 {DEV}  {
 	printf("Devolver: %s\n", yytext);
+	return T_DEV;
 }
 
 {ENT}  {
 	printf("Variable entrada: %s\n", yytext);
+	return T_ENT;
 }
 {SAL}  {
 	printf("Variable salida: %s\n", yytext);
+	return T_SAL;
 }
 
 {ENTSAL}  {
 	printf("Variable entrada/salida: %s\n", yytext);
+	return T_ENTSAL;
 }
 
 {REF}  {
 	printf("Variable referenciada(puntero): %s\n", yytext);
+	return T_REF;
 }
 
 {DOSPUNTOS}  {
 	printf("Declaración: %s\n", yytext);
+	return T_DOSPUNTOS;
 }
 
 {COMPSEC}  {
@@ -304,26 +375,45 @@ CPARENTESIS \)
 
 {SEPARADOR}  {
 	printf("Separador: %s\n", yytext);
+	return T_SEPARADOR;
 }
 
-{OPERADOR_LOGICO}  {
+{PUNTO} {
+	printf("Punto: %s\n", yytext);
+	return T_PUNTO;
+}
+
+{BOOLY}  {
 	printf("Operador Lógico: %s\n", yytext);
+	return T_BOOLY;
+}
+{BOOLO}  {
+	printf("Operador Lógico: %s\n", yytext);
+	return T_BOOLO;
+}
+{NO}  {
+	printf("Operador Lógico: %s\n", yytext);
+	return T_NO;
 }
 
 {SUBRANGO}  {
 	printf("Subrango: %s\n", yytext);
+	return T_SUBRANGO;
 }
 
 {APARENTESIS}  {
 	printf("Abrir paréntesis: %s\n", yytext);
+	return T_APARENTESIS;
 }
 
 {CPARENTESIS}  {
 	printf("Cerrar paréntesis: %s\n", yytext);
+	return T_CPARENTESIS;
 }
 
 {TABLA}  {
 	printf("Tabla: %s\n", yytext);
+	return T_TABLA;
 }
 
 {IDENTIFICADOR}	{
@@ -332,11 +422,13 @@ CPARENTESIS \)
 }
 
 {ASIGNACION} {
-	printf("Asignación: %s\n", yytext);   
+	printf("Asignación: %s\n", yytext);
+	return T_ASIGNACION;
 }
 
 {OPERADOR_RELACIONAL} {
 	printf( "Operador Relacional: %s\n", yytext );
+	return T_OPREL;
 }
 
 {PREC}	{
@@ -346,6 +438,7 @@ CPARENTESIS \)
 
 {POST}	{
 	printf ("Postcondición: %s \n", yytext);
+	return T_POST;
 }
 
 	/* Comentario */

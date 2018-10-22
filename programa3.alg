@@ -7,7 +7,7 @@ var
 fvar
 	i:= 0;
 	suma:= 0;
-	comb:= m;
+	comb:= m
 	mientras i <n hacer
 		suma := suma + comb;
 		comb := comb * (m - i -1) div (i + 2);
