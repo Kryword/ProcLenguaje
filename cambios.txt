@@ -1,0 +1,61 @@
+En estado 83 hay 2 conflictos Shift/Reduce
+	expresion: exp_b .
+	exp_b: exp_b . T_BOOLY exp_b
+	     | exp_b . T_BOOLO exp_b
+	Consideramos que tanto T_BOOLY como T_BOOLO deberían provocar una reducción por la regla 43(expresion), en vez de un shift.
+Puesto que puede ser por izquierdas.
+
+En estado 113 hay 6 conflictos Shift/Reduce
+   45 exp_a: exp_a . T_PLUS exp_a
+   46      | exp_a . T_MINUS exp_a
+   47      | exp_a . T_POR exp_a
+   48      | exp_a . T_DIV exp_a
+   49      | exp_a . T_MOD exp_a
+   50      | exp_a . T_DIVE exp_a
+   54      | T_MINUS exp_a .
+	El conflicto debería resolverse por un reduce por la regla 54(exp_a) en todos los casos, porque T_MINUS exp_a tiene precedencia frente a las otras operaciones.
+
+En estado 117 hay 2 conflictos Shift/Reduce y 1 conflicto Reduce/Reduce
+   43 expresion: exp_b .
+   55 exp_b: exp_b . T_BOOLY exp_b
+   56      | exp_b . T_BOOLO exp_b
+   57      | T_NO exp_b .
+	El conflicto se debería resolver siempre por un reduce(por la regla 57(exp_b)), puesto que el operador lógico NO unario tiene prioridad sobre los operadores lógicos binarios.
+
+En estado 133 hay 1 conflicto Shift/Reduce
+   22 d_tipo: T_IDENTIFICADOR .
+   32 lista_d_var: lista_id T_DOSPUNTOS T_IDENTIFICADOR . T_SEC lista_d_var
+   62 operando: T_IDENTIFICADOR .
+   91 funcion_ll: T_IDENTIFICADOR . T_APARENTESIS l_ll T_CPARENTESIS
+En caso de encontrarse un T_SEC debería hacerse un shift creemos momentáneamente.
+
+En estado 141 hay 3 conflictos Shift/Reduce
+   63 operando: operando . T_PUNTO operando
+   63         | operando T_PUNTO operando .
+   64         | operando . T_ACCESO expresion T_FACCESO
+   65         | operando . T_REF
+Creemos que debería hacerse una reducción por la regla 63(operador) frente a cualquier token de entrada. Aún no entendemos la razón del punto.
+
+En estado 161 hay 1 conflicto Shift/Reduce
+   60 exp_b: expresion . T_OPREL expresion
+   60      | expresion T_OPREL expresion .
+TODO: Comentar esta parte. El problema surge que si hacemos un reduce deja de tener sentido la expresión, porque si tuviesemos otra expresión VERDADERO/FALSO con un operador relacional no tendría sentido. No tiene sentido 0>=FALSO.
+
+En estado 162, 163, 164, 165, 166, 167 hay 6 conflictos Shift/Reduce en cada uno y son parecidos, dejo el del estado 162 como ejemplo:
+   45 exp_a: exp_a . T_PLUS exp_a
+   45      | exp_a T_PLUS exp_a .
+   46      | exp_a . T_MINUS exp_a
+   47      | exp_a . T_POR exp_a
+   48      | exp_a . T_DIV exp_a
+   49      | exp_a . T_MOD exp_a
+   50      | exp_a . T_DIVE exp_a
+	Para resolver estos conflictos basta con fijarnos en la prioridad de los operadores numéricos. El T_PLUS y el T_MINUS serán los de menos prioridad, así que en caso de estar en un estado como el 162, haremos shift cuando nos encontremos con T_POR, T_DIV, T_MOD o T_DIVE. El resto de operadores tienen la misma prioridad, así que podemos reducir en dichos casos por la regla 45(exp_a).
+
+En estado 168 y 169 hay 2 conflictos Shift/Reduce y 1 conflicto Reduce/Reduce, en cada estado
+   43 expresion: exp_b .
+   55 exp_b: exp_b . T_BOOLY exp_b
+   55      | exp_b T_BOOLY exp_b .
+   56      | exp_b . T_BOOLO exp_b
+	En ambos casos se debería hacer una reducción por la regla 55(exp_b) puesto que ninguno de los dos tiene preferencia a la hora de aplicar su operador. T_BOOLY y T_BOOLO tienen la misma prioridad.
+
+Según hemos entendido bastaría con modificar algún punto dentro del archivo bison para decirle que realizar en caso de conflicto, pero preferimos preguntar como se haría esto.
