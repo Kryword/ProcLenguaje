@@ -20,7 +20,6 @@ void yyerror(char const *);
 %token T_IGUAL
 %token T_TUPLA
 %token T_FTUPLA
-%token T_ACCESO
 %token T_FACCESO
 %token T_SUBRANGO
 %token T_DE
@@ -30,22 +29,24 @@ void yyerror(char const *);
 %token T_DOSPUNTOS;
 %token T_ENT;
 %token T_SAL;
-%token T_PLUS;
-%token T_MINUS;
-%token T_POR;
-%token T_DIV;
-%token T_DIVE;
-%token T_MOD;
+
+%left T_PLUS T_MINUS T_BOOLY T_BOOLO;
+%left T_POR T_DIV T_DIVE T_MOD;
+%left T_OPREL;
+
+%left T_NO;
+%right T_AUXMINUS
+
+%left T_ACCESO T_REF;
+%left T_PUNTO;
+
 %token T_APARENTESIS;
 %token T_CPARENTESIS;
 %token T_LITERAL_NUMERICO;
-%token T_BOOLY;
-%token T_BOOLO;
-%token T_NO;
+
 %token T_VERDADERO;
 %token T_FALSO;
-%token T_OPREL;
-%token T_PUNTO;
+
 %token T_CONTINUAR;
 %token T_SI;
 %token T_FSI;
@@ -65,7 +66,6 @@ void yyerror(char const *);
 %token T_ASIGNACION;
 %token T_ENTSAL;
 %token T_LITERAL_CARACTER;
-%token T_REF;
 %token T_TABLA;
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
@@ -141,9 +141,7 @@ lista_d_cte: T_IDENTIFICADOR T_IGUAL T_LITERAL T_SEC lista_d_cte {
 	| %empty{
 		};
 
-lista_d_var: lista_id T_DOSPUNTOS T_IDENTIFICADOR T_SEC  lista_d_var {
-		}
-	| lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
+lista_d_var:lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
 		} 
 	| %empty{
 		};
@@ -167,49 +165,42 @@ decl_sal: T_SAL lista_d_var{
 		};
 
 /* Expresiones */
-expresion: exp_a{
-		} 
-	| exp_b{
-		} 
-	| funcion_ll{
-		};
 
-exp_a: exp_a T_PLUS exp_a {
+exp: exp T_PLUS exp {
 		}
-	| exp_a T_MINUS exp_a{
+	| exp T_MINUS exp{
 		}
-	| exp_a T_POR exp_a{
+	| exp T_POR exp{
 		} 
-	| exp_a T_DIV exp_a{
+	| exp T_DIV exp{
 		} 
-	| exp_a T_MOD exp_a {
+	| exp T_MOD exp {
 		}
-	| exp_a T_DIVE exp_a {
+	| exp T_DIVE exp {
 		}
-	| T_APARENTESIS exp_a T_CPARENTESIS {
+	| T_APARENTESIS exp T_CPARENTESIS {
 		}
 	| operando{
 		}
 	| T_LITERAL_NUMERICO {
 		}
-	| T_MINUS exp_a{
-		};
-
-exp_b: exp_b T_BOOLY exp_b {
+	| T_MINUS exp %prec T_AUXMINUS{
 		}
-	| exp_b T_BOOLO exp_b { 
+	| exp T_BOOLY exp {
 		}
-	| T_NO exp_b {
+	| exp T_BOOLO exp { 
 		}
-	/*| operando  {
-		}*/
+	| T_NO exp {
+		}
 	| T_VERDADERO {
 		}
 	| T_FALSO {
 		}
 	| expresion T_OPREL expresion {
-		}
-	| T_APARENTESIS exp_b T_CPARENTESIS{
+		};
+expresion: exp{
+		} 
+	| funcion_ll{
 		};
 
 operando: T_IDENTIFICADOR{

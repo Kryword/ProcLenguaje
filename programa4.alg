@@ -4,7 +4,7 @@ algoritmo restaAños;
 {Prec: n=N AND m=M AND M >= 0 AND N >= 0}
 var 
     añoAnterior, añoFinal:entero;
-    tablaAños: tabla de entero[1..N];
+    tablaAños: tabla[1..N] de entero;
 fvar
     
     {Este programa demuestra el uso de ñ y comentarios
@@ -16,8 +16,8 @@ fvar
 	añoFinal := n
     [] n <= m ->
 	añoAnterior := n;
-	añoFinal := m;
-    fsi
-    años := añoFinal - añoAnterior;
+	añoFinal := m
+    fsi;
+    años := añoFinal - añoAnterior
 {Post: n = N AND m = M AND años = |M - N|}
 falgoritmo
