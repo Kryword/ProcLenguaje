@@ -1,6 +1,6 @@
 %{
 #include <stdio.h>
-#define YYSTYPE char const *
+#include "TablaSimbolos.h"
 int yylex(void);
 void yyerror(char const *);
 %}
@@ -69,7 +69,7 @@ void yyerror(char const *);
 %token T_TABLA;
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
-desc_algoritmo:T_BALGORITMO T_IDENTIFICADOR T_SEC cabecera_alg bloque_alg T_FALGORITMO{printf ("\tAlgoritmo\n");};
+desc_algoritmo:T_BALGORITMO T_IDENTIFICADOR T_SEC cabecera_alg bloque_alg T_FALGORITMO{printf ("\tALGORITMO OK\n");};
 cabecera_alg:decl_globales decl_a_f decl_ent_sal T_PREC{
 		printf("\tCabecera de algoritmo\n");
 	};
@@ -84,16 +84,20 @@ decl_globales:declaracion_tipo decl_globales{
 	}
 	| %empty;
 decl_a_f:accion_d decl_a_f {
+		printf("\tDeclaración de Acción\n");
 		}
 	| funcion_d decl_a_f {
+		printf("\tDeclaración de Función\n");
 		}
 	| %empty{
 		};
 bloque: declaraciones instrucciones{
 		};
 declaraciones: declaracion_tipo declaraciones {
+		printf("\tDeclaración de tipo\n");
 		}
 	| declaracion_const declaraciones {
+		printf("\tDeclaración de constantes\n");
 		}
 	| declaracion_var declaraciones {
 		printf("\tDeclaración de variables\n");
@@ -116,8 +120,7 @@ lista_d_tipo: T_IDENTIFICADOR T_IGUAL d_tipo T_SEC lista_d_tipo{
 d_tipo: T_TUPLA lista_campos T_FTUPLA {
 		}
 	| T_TABLA T_ACCESO expresion_t T_SUBRANGO expresion_t T_FACCESO T_DE d_tipo{
-		printf("\tDeclaración de tipo Tabla\n");
-	}
+		}
 	| T_IDENTIFICADOR {
 		}
 	| expresion_t T_SUBRANGO expresion_t{
@@ -220,7 +223,7 @@ instrucciones: instruccion T_SEC instrucciones {
 instruccion: T_CONTINUAR{
 		} 
 	| asignacion {
-		printf("\tInstrucción de asignación\n");
+		printf("\tInstrucción de asignación \n");
 	}
 	| alternativa {
 		printf("\tInstrucción alternativa\n");
@@ -249,8 +252,10 @@ it_cota_fija: T_PARA T_IDENTIFICADOR T_ASIGNACION expresion T_HASTA expresion T_
 
 /* Funciones y Acciones */
 accion_d: T_ACCION a_cabecera bloque T_FACCION{
+		printf("\tDeclaración de acción\n");
 		};
 funcion_d: T_FUNCION f_cabecera bloque T_DEV expresion T_FFUNCION{
+		printf("\tDeclaración de función\n");
 		};
 a_cabecera: T_IDENTIFICADOR T_APARENTESIS d_par_form T_CPARENTESIS T_SEC{
 		};
@@ -268,8 +273,10 @@ d_p_form: T_ENT lista_id T_DOSPUNTOS d_tipo{
 		};
 
 accion_ll: T_IDENTIFICADOR T_APARENTESIS l_ll T_CPARENTESIS{
+		printf("\tLlamada a una acción\n");
 		};
 funcion_ll: T_IDENTIFICADOR T_APARENTESIS l_ll T_CPARENTESIS{
+		printf("\tLlamada a una función\n");
 		};
 l_ll: expresion T_SEPARADOR l_ll {
 		}
