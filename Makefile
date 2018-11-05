@@ -4,9 +4,9 @@ CFILES=lex.yy.c TablaSimbolos.c
 OFILES=lex.yy.o TablaSimbolos.o
 BNAME=gramatica
 LIBS=-lfl -lm
-FLEX=flex
+FLEX=flex --bison-bridge
 BISON=bison
-BOPTIONS=-v -d
+BOPTIONS=-v -d -t
 TOCLEAN=gramatica.tab.c gramatica.tab.h lex.yy.c lex.yy.o gramatica.output TablaSimbolos.o a.out
 
 default: bison flex

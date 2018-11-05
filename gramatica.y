@@ -3,7 +3,9 @@
 #include "TablaSimbolos.h"
 int yylex(void);
 void yyerror(char const *);
+#define YYSTYPE char*
 %}
+/*%define api.value.type  {char *}*/
 /* Comienzo y final de Algoritmo */
 %token T_BALGORITMO
 %token T_FALGORITMO
@@ -118,16 +120,22 @@ lista_d_tipo: T_IDENTIFICADOR T_IGUAL d_tipo T_SEC lista_d_tipo{
 	| %empty{
 		};
 d_tipo: T_TUPLA lista_campos T_FTUPLA {
+		$$ = "Tupla";
 		}
 	| T_TABLA T_ACCESO expresion_t T_SUBRANGO expresion_t T_FACCESO T_DE d_tipo{
+		$$ = "Tabla";
 		}
 	| T_IDENTIFICADOR {
+		$$ = yylval;
 		}
 	| expresion_t T_SUBRANGO expresion_t{
+		$$ = "Expresión";
 		} 
 	| T_REF d_tipo {
+		$$ = $2;
 		}
 	| T_TIPOBASE{
+		$$ = yylval;
 		};
 expresion_t: expresion {
 		}
@@ -145,12 +153,17 @@ lista_d_cte: T_IDENTIFICADOR T_IGUAL T_LITERAL T_SEC lista_d_cte {
 		};
 
 lista_d_var:lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
+		printf("\tLista_id:%s\tTipo:%s\n", $1, $3);
 		} 
 	| %empty{
 		};
 lista_id: T_IDENTIFICADOR T_SEPARADOR lista_id {
+		$$ = $3;
+		//printf("\t%d\n", $1);
 		}
 	| T_IDENTIFICADOR{
+		printf("IDENTIFICADOR: %s\n", $1);
+		$$ = yylval;
 		};
 
 decl_ent_sal: decl_ent {
