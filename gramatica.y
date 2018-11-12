@@ -1,15 +1,20 @@
 %{
 #include <stdio.h>
 #include "TablaSimbolos.h"
+#include <string.h>
 int yylex(void);
 void yyerror(char const *);
-#define YYSTYPE char*
 %}
-/*%define api.value.type  {char *}*/
+%union{
+	int entero;
+	double real;
+	char* union_cadena;
+	char** union_cadenas;
+}
 /* Comienzo y final de Algoritmo */
 %token T_BALGORITMO
 %token T_FALGORITMO
-%token T_IDENTIFICADOR
+%token<union_cadena> T_IDENTIFICADOR
 %token T_SEC
 %token T_BTIPO
 %token T_FTIPO
@@ -25,7 +30,7 @@ void yyerror(char const *);
 %token T_FACCESO
 %token T_SUBRANGO
 %token T_DE
-%token T_TIPOBASE;
+%token<union_cadena> T_TIPOBASE;
 %token T_LITERAL;
 %token T_SEPARADOR;
 %token T_DOSPUNTOS;
@@ -69,6 +74,11 @@ void yyerror(char const *);
 %token T_ENTSAL;
 %token T_LITERAL_CARACTER;
 %token T_TABLA;
+
+%type<union_cadena>d_tipo
+%type<union_cadena>lista_id
+%type<union_cadena>lista_campos
+
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
 desc_algoritmo:T_BALGORITMO T_IDENTIFICADOR T_SEC cabecera_alg bloque_alg T_FALGORITMO{printf ("\tALGORITMO OK\n");};
@@ -120,22 +130,22 @@ lista_d_tipo: T_IDENTIFICADOR T_IGUAL d_tipo T_SEC lista_d_tipo{
 	| %empty{
 		};
 d_tipo: T_TUPLA lista_campos T_FTUPLA {
-		$$ = "Tupla";
+		$$ = "TUPLA";
 		}
 	| T_TABLA T_ACCESO expresion_t T_SUBRANGO expresion_t T_FACCESO T_DE d_tipo{
-		$$ = "Tabla";
+		$$ = "TABLA";
 		}
 	| T_IDENTIFICADOR {
-		$$ = yylval;
+		$$ = $1;
 		}
 	| expresion_t T_SUBRANGO expresion_t{
-		$$ = "Expresión";
+		$$ = "EXPRESION";
 		} 
 	| T_REF d_tipo {
-		$$ = $2;
+		$$ = "REF";
 		}
 	| T_TIPOBASE{
-		$$ = yylval;
+		$$ = $1;
 		};
 expresion_t: expresion {
 		}
@@ -153,17 +163,19 @@ lista_d_cte: T_IDENTIFICADOR T_IGUAL T_LITERAL T_SEC lista_d_cte {
 		};
 
 lista_d_var:lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
-		printf("\tLista_id:%s\tTipo:%s\n", $1, $3);
+		printf("\tLista de variables: %s de tipo %s\n", $1, $3);
 		} 
 	| %empty{
 		};
 lista_id: T_IDENTIFICADOR T_SEPARADOR lista_id {
-		$$ = $3;
 		//printf("\t%d\n", $1);
+		char * aux = strdup($1);
+		strcat(aux, ", ");
+		strcat(aux, $3);
+		$$ = strdup(aux);
 		}
 	| T_IDENTIFICADOR{
-		printf("IDENTIFICADOR: %s\n", $1);
-		$$ = yylval;
+		$$ = $1;
 		};
 
 decl_ent_sal: decl_ent {
@@ -302,5 +314,6 @@ void yyerror(char const * error)
 }
 int main(void)
 {
+	Simbolo * tablaSimbolos = NULL;
 	yyparse();
 }

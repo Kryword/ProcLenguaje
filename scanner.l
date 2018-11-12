@@ -10,7 +10,6 @@
 /* Zona para incluir las librerías necesarias */
 #include <math.h>
 #include "gramatica.tab.h"
-#define YYSTYPE char*
 %}
 
     /*
@@ -200,6 +199,7 @@ PUNTO \.
 {TIPO}	{
 	printf( "Tipo: %s\n", yytext );
 	/**yylval = "Testing";*/
+	yylval.union_cadena = strdup(yytext);
 	return T_TIPOBASE;
 }
 
@@ -422,6 +422,7 @@ PUNTO \.
 	printf( "Identificador: %s\n", yytext );
 	/**yylval = (char *) malloc(sizeof(char)*strlen(yytext));
 	*yylval = strdup(yytext);*/
+	yylval.union_cadena = strdup(yytext);
 	return T_IDENTIFICADOR;
 }
 
