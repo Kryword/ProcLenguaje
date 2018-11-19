@@ -1,15 +1,25 @@
 %{
 #include <stdio.h>
 #include "TablaSimbolos.h"
+#include "TablaCuadruplas.h"
 #include <string.h>
 int yylex(void);
 void yyerror(char const *);
+
+TablaSimbolos* tablaSimbolos;
+TablaCuadruplas* tablaCuadruplas;
+
+typedef struct Cola{
+	char* nombre;
+	struct Cola* siguiente;
+}Cola;
 %}
 %union{
 	int entero;
 	double real;
 	char* union_cadena;
 	char** union_cadenas;
+	struct Cola* union_cola;
 }
 /* Comienzo y final de Algoritmo */
 %token T_BALGORITMO
@@ -76,8 +86,9 @@ void yyerror(char const *);
 %token T_TABLA;
 
 %type<union_cadena>d_tipo
-%type<union_cadena>lista_id
+%type<union_cola>lista_id
 %type<union_cadena>lista_campos
+%type<union_cadena>operando
 
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
@@ -94,14 +105,14 @@ decl_globales:declaracion_tipo decl_globales{
 	| declaracion_const decl_globales {
 		printf("\tDeclaraciones Globales de constantes\n");
 	}
-	| %empty;
+	| /* empty */;
 decl_a_f:accion_d decl_a_f {
 		printf("\tDeclaración de Acción\n");
 		}
 	| funcion_d decl_a_f {
 		printf("\tDeclaración de Función\n");
 		}
-	| %empty{
+	| /* empty */{
 		};
 bloque: declaraciones instrucciones{
 		};
@@ -114,7 +125,7 @@ declaraciones: declaracion_tipo declaraciones {
 	| declaracion_var declaraciones {
 		printf("\tDeclaración de variables\n");
 	}
-	| %empty{
+	| /* empty */{
 		};
 /* Declaraciones */
 declaracion_tipo:T_BTIPO lista_d_tipo T_FTIPO{
@@ -127,7 +138,7 @@ declaracion_var:T_VAR lista_d_var T_FVAR{
 /* Declaración de Tipos*/
 lista_d_tipo: T_IDENTIFICADOR T_IGUAL d_tipo T_SEC lista_d_tipo{
 		} 
-	| %empty{
+	| /* empty */{
 		};
 d_tipo: T_TUPLA lista_campos T_FTUPLA {
 		$$ = "TUPLA";
@@ -153,29 +164,53 @@ expresion_t: expresion {
 		};
 lista_campos: T_IDENTIFICADOR T_DOSPUNTOS d_tipo T_SEC lista_campos{
 		} 
-	| %empty{
+	| /* empty */{
 		};
 
 /* Declaración de constantes y variables */
 lista_d_cte: T_IDENTIFICADOR T_IGUAL T_LITERAL T_SEC lista_d_cte {
 		}
-	| %empty{
+	| /* empty */{
 		};
 
 lista_d_var:lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
-		printf("\tLista de variables: %s de tipo %s\n", $1, $3);
-		} 
-	| %empty{
+			Cola* auxCola = $1;
+			printf("\tLista de variables: ");
+			while (auxCola->siguiente != NULL){
+				printf("%s, ", auxCola->nombre);
+				Simbolo* variable = nuevoSimbolo();
+				variable->nombre = strdup(auxCola->nombre);
+				variable->tipo = strdup($3);
+				insertar(tablaSimbolos, variable);
+				auxCola = auxCola->siguiente;
+			}
+			// Obtengo la última variable
+			Simbolo* variable = nuevoSimbolo();
+			variable->nombre = strdup(auxCola->nombre);
+			variable->tipo = strdup($3);
+			insertar(tablaSimbolos, variable);
+
+			printf(" de tipo %s\n", $3);
+		}
+	| /* empty */{
 		};
 lista_id: T_IDENTIFICADOR T_SEPARADOR lista_id {
-		//printf("\t%d\n", $1);
 		char * aux = strdup($1);
-		strcat(aux, ", ");
-		strcat(aux, $3);
-		$$ = strdup(aux);
+
+		Cola* auxCola = $3;
+		while (auxCola->siguiente != NULL){
+			auxCola = auxCola->siguiente;
+		}
+		Cola * sig = (Cola*)malloc(sizeof(Cola));
+		sig->siguiente = NULL;
+		sig->nombre = strdup($1);
+		auxCola->siguiente = sig;
+		$$ = $3;
 		}
 	| T_IDENTIFICADOR{
-		$$ = $1;
+		$$ = (Cola*)malloc(sizeof(Cola));
+		$$->nombre = strdup($1);
+		$$->siguiente = NULL;
 		};
 
 decl_ent_sal: decl_ent {
@@ -195,6 +230,17 @@ decl_sal: T_SAL lista_d_var{
 /* Expresiones */
 
 exp: exp T_PLUS exp {
+		//TODO: Hacer esto funcionar
+		Simbolo* simb = newTemp();
+		int t1 = simb->id;
+		printf("\tIDSimbolo: %d\n", t1);
+		Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
+		cuadrupla->operador = strdup("+");
+		//cuadrupla->operando1 = strdup($1);
+		//cuadrupla->operando2 = strdup($3);
+		cuadrupla->resultado = t1;		
+		cuadrupla->siguiente = NULL;
+		//$$ = t1;
 		}
 	| exp T_MINUS exp{
 		}
@@ -211,6 +257,7 @@ exp: exp T_PLUS exp {
 	| operando{
 		}
 	| T_LITERAL_NUMERICO {
+		
 		}
 	| T_MINUS exp %prec T_AUXMINUS{
 		}
@@ -232,6 +279,7 @@ expresion: exp{
 		};
 
 operando: T_IDENTIFICADOR{
+		$$ = strdup($1);
 		} 
 	| operando T_PUNTO operando {
 		}
@@ -259,12 +307,27 @@ instruccion: T_CONTINUAR{
 	| accion_ll{
 		};
 asignacion: operando T_ASIGNACION expresion{
+		Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
+		cuadrupla->operador = strdup(":=");
+		cuadrupla->operando1 = strdup($1);
+		//cuadrupla->operando2 = strdup($3);
+		cuadrupla->siguiente = NULL;
+		
+		if (tablaCuadruplas->ultima == NULL){
+			
+			tablaCuadruplas->primera = cuadrupla;
+			tablaCuadruplas->ultima = cuadrupla;
+			printf("\tASIGNACION: %s%s\n", tablaCuadruplas->primera->operador, cuadrupla->operando1);
+		}else{
+			(tablaCuadruplas->ultima)->siguiente = cuadrupla;
+			tablaCuadruplas->ultima = cuadrupla; 
+		}
 		};
 alternativa: T_SI expresion T_ENTONCES instrucciones lista_opciones T_FSI{
 		};
 lista_opciones: T_SINO expresion T_ENTONCES instrucciones lista_opciones {
 		}
-	| %empty{
+	| /* empty */{
 		};
 iteracion: it_cota_fija {
 		} 
@@ -288,7 +351,7 @@ f_cabecera: T_IDENTIFICADOR T_APARENTESIS lista_d_var T_CPARENTESIS T_DEV d_tipo
 		};
 d_par_form: d_p_form T_SEC d_par_form {
 		}
-	| %empty{
+	| /* empty */{
 		};
 d_p_form: T_ENT lista_id T_DOSPUNTOS d_tipo{
 		} 
@@ -314,6 +377,10 @@ void yyerror(char const * error)
 }
 int main(void)
 {
-	Simbolo * tablaSimbolos = NULL;
+	tablaSimbolos = (TablaSimbolos*)malloc(sizeof(TablaSimbolos));
+	tablaCuadruplas = (TablaCuadruplas*)malloc(sizeof(TablaCuadruplas));
+
 	yyparse();
+	muestraTabla(*tablaSimbolos);
+	muestraTablaCuadruplas(*tablaCuadruplas);
 }

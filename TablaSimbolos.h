@@ -14,5 +14,15 @@ typedef struct Simbolo
     char* tipo;			// tipo del símbolo, de momento es un string
 }Simbolo;
 
-void insertar (Simbolo** siguiente, Simbolo* sim);
+typedef struct TablaSimbolos
+{
+	struct Simbolo* primero;
+	struct Simbolo* ultimo;
+	int ultimoId;
+}TablaSimbolos;
+
+void insertar (TablaSimbolos* tabla, Simbolo* sim);
 Simbolo* buscar(char* nombre, Simbolo* tabla);
+Simbolo* nuevoSimbolo();
+void muestraTabla(TablaSimbolos tabla);
+Simbolo* newTemp();

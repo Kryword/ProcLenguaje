@@ -1,5 +1,5 @@
 algoritmo intercambio;
-ent a, b: entero;
+ent a, b, c, d, e, f: entero;
 sal a, b: entero;
 {Prec: a= A AND b = B}
 var
