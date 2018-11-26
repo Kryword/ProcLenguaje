@@ -1,8 +1,6 @@
-// Importamos stdio para el guardado en 
-// fichero y string para el strcmp
-#include <stdio.h>
-#include <string.h>
+// Importamos stdio para el guardado en // fichero y string para el strcmp #include <stdio.h> #include <string.h>
 #include "TablaSimbolos.h"
+#include <string.h>
 
 /////////////////////////////////////////////
 ////////	Funciones	    /////////
@@ -53,24 +51,50 @@ int buscarId(char* nombre, Simbolo* tabla){
 }
 
 void muestraTabla(TablaSimbolos tabla){
-	printf("///////////////////////////////\n");
-	printf("///    Tabla de símbolos    ///\n");
-	printf("///////////////////////////////\n");	
+	printf("//////////////////////////////////////////////\n");
+	printf("||/            Tabla de símbolos           /||\n");
+	printf("||////////||//////////////////////||////////||\n");
+	printf("||   ID   ||        Nombre        ||  Tipo  ||\n");
 	if (tabla.primero == NULL){
+		printf("//////////////////////////////////////////////\n");
 		printf("La tabla está vacía.");
 	}else{
 		Simbolo* puntero = tabla.primero;
 		while(puntero->siguiente != NULL){
-			printf("ID: %d\tNombre: %s\tTipo: %s\n", puntero->id, puntero->nombre, puntero->tipo);
+			printf("||%8d||%22s||%8s||\n", puntero->id, puntero->nombre, puntero->tipo);
 			puntero = puntero->siguiente;
 		}
-		printf("ID: %d\tNombre: %s\tTipo: %s\n", puntero->id, puntero->nombre, puntero->tipo);
+		printf("||%8d||%22s||%8s||\n", puntero->id, puntero->nombre, puntero->tipo);
+		printf("//////////////////////////////////////////////\n");
 	}
 }
 
-Simbolo* newTemp(){
+Simbolo* buscarSimboloPorId(int id, Simbolo* tabla){
+	while((tabla != NULL) && (id != tabla->id)){
+		tabla = tabla->siguiente;
+	}
+	return tabla;
+}
+
+Simbolo* newTemp(TablaSimbolos *tablaSimbolos){
 	// TODO: Por implementar
 	Simbolo* simbolo = nuevoSimbolo();
-	simbolo->id = 0;
+	simbolo->id = tablaSimbolos->ultimoId + 1;
+	simbolo->nombre = (char*)malloc(50*sizeof(char));
+	snprintf(simbolo->nombre, 50, "_TMP_%d", simbolo->id);
+	insertar(tablaSimbolos, simbolo);
 	return simbolo;
+}
+
+char* consulta_tipo_TS(int id, Simbolo* tabla){
+	while((tabla != NULL) && (id != tabla->id)){
+		tabla = tabla->siguiente;
+	}
+	if (tabla != NULL){
+		return tabla->tipo;
+	}
+}
+
+void modifica_tipo_TS(Simbolo* simb, char* tipo){
+	simb->tipo = strdup(tipo);
 }

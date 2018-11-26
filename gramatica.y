@@ -3,6 +3,7 @@
 #include "TablaSimbolos.h"
 #include "TablaCuadruplas.h"
 #include <string.h>
+#include "definiciones.h"
 int yylex(void);
 void yyerror(char const *);
 
@@ -16,7 +17,7 @@ typedef struct Cola{
 typedef struct Expresion{
 	int place;
 	char* code;
-	int tipo;
+	char* tipo;
 }Expresion;
 %}
 %union{
@@ -239,7 +240,7 @@ decl_sal: T_SAL lista_d_var{
 exp: exp T_PLUS exp {
 		//TODO: Hacer esto funcionar
 		$$ = (Expresion*) malloc(sizeof(Expresion));
-		int t = newTemp();
+		Simbolo* t = newTemp(tablaSimbolos);
 		}
 	| exp T_MINUS exp{
 		}
@@ -258,11 +259,16 @@ exp: exp T_PLUS exp {
 	| operando{
 		$$ = (Expresion*) malloc(sizeof(Expresion));
 		$$->place = $1;
+		$$->tipo = strdup(consulta_tipo_TS($1, tablaSimbolos->primero));
 		}
 	| T_LITERAL_NUMERICO {
 		
 		}
 	| T_MINUS exp %prec T_AUXMINUS{
+		Simbolo* t = newTemp(tablaSimbolos);
+		modifica_tipo_TS(t, $2->tipo);
+		$$->place = t->id;
+		generaCuadrupla("-", $2->place, 0, $$->place, tablaCuadruplas);
 		}
 	| exp T_BOOLY exp {
 		}
@@ -390,5 +396,6 @@ int main(void)
 
 	yyparse();
 	muestraTabla(*tablaSimbolos);
+	printf("\n\n");
 	muestraTablaCuadruplas(*tablaCuadruplas);
 }

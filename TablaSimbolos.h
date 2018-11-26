@@ -26,4 +26,6 @@ Simbolo* buscar(char* nombre, Simbolo* tabla);
 int buscarId(char* nombre, Simbolo* tabla);
 Simbolo* nuevoSimbolo();
 void muestraTabla(TablaSimbolos tabla);
-Simbolo* newTemp();
+Simbolo* newTemp(TablaSimbolos *tablaSimbolos);
+char* consulta_tipo_TS(int id, Simbolo* tabla);
+void modifica_tipo_TS(Simbolo* id, char* tipo);

@@ -12,3 +12,4 @@ typedef struct TablaCuadruplas{
 }TablaCuadruplas;
 
 void muestraTablaCuadruplas(TablaCuadruplas tabla);
+void generaCuadrupla(char* operador, int operando1, int operando2, int resultado, TablaCuadruplas* tablaCuadruplas);
