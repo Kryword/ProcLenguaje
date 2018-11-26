@@ -13,6 +13,11 @@ typedef struct Cola{
 	char* nombre;
 	struct Cola* siguiente;
 }Cola;
+typedef struct Expresion{
+	int place;
+	char* code;
+	int tipo;
+}Expresion;
 %}
 %union{
 	int entero;
@@ -20,6 +25,7 @@ typedef struct Cola{
 	char* union_cadena;
 	char** union_cadenas;
 	struct Cola* union_cola;
+	struct Expresion* union_expresion;
 }
 /* Comienzo y final de Algoritmo */
 %token T_BALGORITMO
@@ -88,7 +94,9 @@ typedef struct Cola{
 %type<union_cadena>d_tipo
 %type<union_cola>lista_id
 %type<union_cadena>lista_campos
-%type<union_cadena>operando
+%type<entero>operando
+%type<union_expresion>expresion
+%type<union_expresion>exp
 
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
@@ -153,7 +161,6 @@ d_tipo: T_TUPLA lista_campos T_FTUPLA {
 		$$ = "EXPRESION";
 		} 
 	| T_REF d_tipo {
-		$$ = "REF";
 		}
 	| T_TIPOBASE{
 		$$ = $1;
@@ -231,16 +238,8 @@ decl_sal: T_SAL lista_d_var{
 
 exp: exp T_PLUS exp {
 		//TODO: Hacer esto funcionar
-		Simbolo* simb = newTemp();
-		int t1 = simb->id;
-		printf("\tIDSimbolo: %d\n", t1);
-		Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
-		cuadrupla->operador = strdup("+");
-		//cuadrupla->operando1 = strdup($1);
-		//cuadrupla->operando2 = strdup($3);
-		cuadrupla->resultado = t1;		
-		cuadrupla->siguiente = NULL;
-		//$$ = t1;
+		$$ = (Expresion*) malloc(sizeof(Expresion));
+		int t = newTemp();
 		}
 	| exp T_MINUS exp{
 		}
@@ -253,8 +252,12 @@ exp: exp T_PLUS exp {
 	| exp T_DIVE exp {
 		}
 	| T_APARENTESIS exp T_CPARENTESIS {
+		$$->place = $2->place;
+		$$->code = $2->code;
 		}
 	| operando{
+		$$ = (Expresion*) malloc(sizeof(Expresion));
+		$$->place = $1;
 		}
 	| T_LITERAL_NUMERICO {
 		
@@ -279,7 +282,11 @@ expresion: exp{
 		};
 
 operando: T_IDENTIFICADOR{
-		$$ = strdup($1);
+		int i = buscarId($1, tablaSimbolos->primero);
+		if(i != 0){
+			printf("\t\tEncontrado identificador: %d\n", i);
+		}
+		$$ = i;
 		} 
 	| operando T_PUNTO operando {
 		}
@@ -307,14 +314,14 @@ instruccion: T_CONTINUAR{
 	| accion_ll{
 		};
 asignacion: operando T_ASIGNACION expresion{
-		Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
+		/*Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
 		cuadrupla->operador = strdup(":=");
-		cuadrupla->operando1 = strdup($1);
+		cuadrupla->operando1 = newTemp();
+		//cuadrupla->operando2 = $3;
 		//cuadrupla->operando2 = strdup($3);
 		cuadrupla->siguiente = NULL;
 		
 		if (tablaCuadruplas->ultima == NULL){
-			
 			tablaCuadruplas->primera = cuadrupla;
 			tablaCuadruplas->ultima = cuadrupla;
 			printf("\tASIGNACION: %s%s\n", tablaCuadruplas->primera->operador, cuadrupla->operando1);
@@ -322,6 +329,7 @@ asignacion: operando T_ASIGNACION expresion{
 			(tablaCuadruplas->ultima)->siguiente = cuadrupla;
 			tablaCuadruplas->ultima = cuadrupla; 
 		}
+		*/
 		};
 alternativa: T_SI expresion T_ENTONCES instrucciones lista_opciones T_FSI{
 		};

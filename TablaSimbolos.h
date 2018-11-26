@@ -23,6 +23,7 @@ typedef struct TablaSimbolos
 
 void insertar (TablaSimbolos* tabla, Simbolo* sim);
 Simbolo* buscar(char* nombre, Simbolo* tabla);
+int buscarId(char* nombre, Simbolo* tabla);
 Simbolo* nuevoSimbolo();
 void muestraTabla(TablaSimbolos tabla);
 Simbolo* newTemp();

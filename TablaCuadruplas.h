@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 typedef struct Cuadrupla{
-	char *operador, *operando1, *operando2, *resultado;
+	char *operador;
+	int operando1, operando2, resultado;
 	struct Cuadrupla* siguiente;
 }Cuadrupla;
 

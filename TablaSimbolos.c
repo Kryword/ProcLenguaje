@@ -43,6 +43,15 @@ Simbolo* nuevoSimbolo(){
 	return simbolo;
 }
 
+int buscarId(char* nombre, Simbolo* tabla){
+	Simbolo* sim = buscar(nombre, tabla);
+	if (sim != NULL){
+		return sim->id;
+	}else{
+		return 0;
+	}
+}
+
 void muestraTabla(TablaSimbolos tabla){
 	printf("///////////////////////////////\n");
 	printf("///    Tabla de símbolos    ///\n");
