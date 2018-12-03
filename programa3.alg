@@ -10,7 +10,7 @@ fvar
 	comb:= m;
 	mientras i <n hacer
 		suma := suma + comb;
-		comb := comb * (m - i -1) div (i + 2);
+		comb := comb * (m - i - 1) div (i + 2);
 		i := i+1
 	fmientras
 {Post: n =N AND suma = SUMATORIO(i=1..N)(M sobre i)}

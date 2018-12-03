@@ -6,6 +6,9 @@
 #include "definiciones.h"
 int yylex(void);
 void yyerror(char const *);
+int* merge(int* lista1, int* lista2);
+int* makeList(int nextquad);
+void backpatch(int* lista, int quad);
 
 TablaSimbolos* tablaSimbolos;
 TablaCuadruplas* tablaCuadruplas;
@@ -18,6 +21,8 @@ typedef struct Expresion{
 	int place;
 	char* code;
 	char* tipo;
+	int* trueExpresion;
+	int* falseExpresion;
 }Expresion;
 %}
 %union{
@@ -94,6 +99,7 @@ typedef struct Expresion{
 
 %type<union_cadena>d_tipo
 %type<union_cola>lista_id
+%type<union_cola>lista_d_var
 %type<union_cadena>lista_campos
 %type<entero>operando
 %type<union_expresion>expresion
@@ -182,23 +188,31 @@ lista_d_cte: T_IDENTIFICADOR T_IGUAL T_LITERAL T_SEC lista_d_cte {
 		};
 
 lista_d_var:lista_id T_DOSPUNTOS d_tipo T_SEC lista_d_var{
-			Cola* auxCola = $1;
-			printf("\tLista de variables: ");
-			while (auxCola->siguiente != NULL){
-				printf("%s, ", auxCola->nombre);
-				Simbolo* variable = nuevoSimbolo();
-				variable->nombre = strdup(auxCola->nombre);
-				variable->tipo = strdup($3);
-				insertar(tablaSimbolos, variable);
-				auxCola = auxCola->siguiente;
-			}
-			// Obtengo la última variable
-			Simbolo* variable = nuevoSimbolo();
-			variable->nombre = strdup(auxCola->nombre);
-			variable->tipo = strdup($3);
+		Cola* auxCola = $1;
+		printf("\tLista de variables: ");
+		while (auxCola->siguiente != NULL){
+		    printf("%s, ", auxCola->nombre);
+		    Simbolo* variable = nuevoSimbolo();
+		    variable->nombre = strdup(auxCola->nombre);
+		    variable->tipo = strdup($3);
+		    variable->entradaSalida = 0;
+		    Simbolo* buscado = buscar(auxCola->nombre, tablaSimbolos->primero);
+		    if (buscado == NULL){
 			insertar(tablaSimbolos, variable);
-
-			printf(" de tipo %s\n", $3);
+		    }
+		    auxCola = auxCola->siguiente;
+		}
+		// Obtengo la última variable
+		Simbolo* variable = nuevoSimbolo();
+		variable->nombre = strdup(auxCola->nombre);
+		variable->tipo = strdup($3);
+		variable->entradaSalida = 0;
+		Simbolo* buscado = buscar(auxCola->nombre, tablaSimbolos->primero);
+		if (buscado == NULL){
+		    insertar(tablaSimbolos, variable);
+		}
+		printf(" de tipo %s\n", $3);
+		$$ = $1;
 		}
 	| /* empty */{
 		};
@@ -231,52 +245,180 @@ decl_ent_sal: decl_ent {
 		printf("\tDeclaración salida\n");
 	};
 decl_ent: T_ENT lista_d_var{
+	    // Recorro la lista de variables y las pongo en entrada
+	    // Aquí debería generar las cuadruplas correspondientes a la entrada
+	    Cola* auxCola = $2;
+	    do{
+		Simbolo* simbolo = buscar(auxCola->nombre, tablaSimbolos->primero);
+		if(simbolo != NULL){
+		    simbolo->entradaSalida++;
+		    generaCuadrupla("input", simbolo->id, 0, 0, tablaCuadruplas);
+		}
+		auxCola = auxCola->siguiente;
+	    }while(auxCola!=NULL);
 		};
 decl_sal: T_SAL lista_d_var{
+	    // Recorro la lista de variables y las pongo en salida
+	    Cola* auxCola = $2;
+	    do{
+		Simbolo* simbolo = buscar(auxCola->nombre, tablaSimbolos->primero);
+		if(simbolo != NULL){
+		    simbolo->entradaSalida+=2;
+		}
+		auxCola = auxCola->siguiente;
+	    }while(auxCola!=NULL);
 		};
 
 /* Expresiones */
 
 exp: exp T_PLUS exp {
-		//TODO: Hacer esto funcionar
-		$$ = (Expresion*) malloc(sizeof(Expresion));
 		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "entero");
+		    generaCuadrupla("+Entero", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "entero";
+		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("+Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("+Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("+Real", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}
+		printf("\t\tSuma de %s y %s\n", $1->tipo, $3->tipo);
 		}
 	| exp T_MINUS exp{
+		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "entero");
+		    generaCuadrupla("-Entero", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "entero";
+		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("-Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("-Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("-Real", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}
 		}
 	| exp T_POR exp{
+		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "entero");
+		    generaCuadrupla("*Entero", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "entero";
+		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("*Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("*Real", $$->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("*Real", $1->place, $3->place, $$->place, tablaCuadruplas);
+		    $$->tipo = "real";
+		}
 		} 
 	| exp T_DIV exp{
+		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		$$->tipo = "real";
+		modifica_tipo_TS(t, "real");
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    Simbolo* t2 = newTemp(tablaSimbolos);
+		    modifica_tipo_TS(t2, "real");
+		    generaCuadrupla("inttoreal", $3->place, 0, t2->id, tablaCuadruplas);
+		    generaCuadrupla("/", $$->place, t2->id, $$->place, tablaCuadruplas);
+		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
+		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("/", $$->place, $3->place, $$->place, tablaCuadruplas);
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
+		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("/", $$->place, $3->place, $$->place, tablaCuadruplas);
+		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
+		    modifica_tipo_TS(t, "real");
+		    generaCuadrupla("/", $1->place, $3->place, $$->place, tablaCuadruplas);
+		}
 		} 
 	| exp T_MOD exp {
+		// TODO: Añadir verificación de errores en caso de hacer mod de tipos no enteros
+		
+		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		$$->tipo = "entero";
+		modifica_tipo_TS(t, "entero");
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    generaCuadrupla("mod", $1->place, $3->place, $$->place, tablaCuadruplas);
+		}
 		}
 	| exp T_DIVE exp {
+		Simbolo* t = newTemp(tablaSimbolos);
+		$$->place = t->id;
+		$$->tipo = "entero";
+		modifica_tipo_TS(t, "entero");
+		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
+		    generaCuadrupla("divE", $1->place, $3->place, $$->place, tablaCuadruplas);
+		}
 		}
 	| T_APARENTESIS exp T_CPARENTESIS {
 		$$->place = $2->place;
-		$$->code = $2->code;
+		$$->tipo = $2->tipo;
 		}
 	| operando{
 		$$ = (Expresion*) malloc(sizeof(Expresion));
 		$$->place = $1;
 		$$->tipo = strdup(consulta_tipo_TS($1, tablaSimbolos->primero));
+		printf("\t\tOperando tipo: %s\n", $$->tipo);
 		}
 	| T_LITERAL_NUMERICO {
 		
 		}
 	| T_MINUS exp %prec T_AUXMINUS{
 		Simbolo* t = newTemp(tablaSimbolos);
-		modifica_tipo_TS(t, $2->tipo);
 		$$->place = t->id;
-		generaCuadrupla("-", $2->place, 0, $$->place, tablaCuadruplas);
+		modifica_tipo_TS(t, $2->tipo);
+		$$->tipo = $2->tipo;
+		if (strcmp($2->tipo, "real")==0){
+		    generaCuadrupla("-uReal", $2->place, 0, $$->place, tablaCuadruplas);
+		}else if (strcmp($2->tipo, "entero")==0){
+		    generaCuadrupla("-uEntero", $2->place, 0, $$->place, tablaCuadruplas);
+		}
 		}
 	| exp T_BOOLY exp {
+		// TODO: Queda por hacer esta parte, tema 6 página 11
+		// TODO: Preguntar por como funciona backpatch
+		/* Cabe destacar que estamos creando las expresiones booleanas de la forma que lo hace C, 
+		    es decir 0 es falso y 1 es verdadero, no creamos un nuevo tipo booleano. */
 		}
 	| exp T_BOOLO exp { 
 		}
 	| T_NO exp {
 		}
 	| T_VERDADERO {
+		/* TODO: Preguntar como se representaría esto */
 		}
 	| T_FALSO {
 		}
@@ -320,22 +462,20 @@ instruccion: T_CONTINUAR{
 	| accion_ll{
 		};
 asignacion: operando T_ASIGNACION expresion{
-		/*Cuadrupla* cuadrupla = (Cuadrupla*)malloc(sizeof(Cuadrupla));
-		cuadrupla->operador = strdup(":=");
-		cuadrupla->operando1 = newTemp();
-		//cuadrupla->operando2 = $3;
-		//cuadrupla->operando2 = strdup($3);
-		cuadrupla->siguiente = NULL;
+		char* tipoT = strdup(consulta_tipo_TS($1, tablaSimbolos->primero));
+		printf("\t\tAsignando %s a %s\n", tipoT, $3->tipo);
 		
-		if (tablaCuadruplas->ultima == NULL){
-			tablaCuadruplas->primera = cuadrupla;
-			tablaCuadruplas->ultima = cuadrupla;
-			printf("\tASIGNACION: %s%s\n", tablaCuadruplas->primera->operador, cuadrupla->operando1);
+		if(strcmp(tipoT, $3->tipo)==0){
+		    generaCuadrupla(":=", $3->place, 0, $1, tablaCuadruplas);
+		}else if(strcmp(tipoT, "real")==0 && strcmp($3->tipo, "entero")==0){
+		    generaCuadrupla("inttoreal", $3->place, 0, $3->place, tablaCuadruplas);
+		    generaCuadrupla(":=", $3->place, 0, $1, tablaCuadruplas);
 		}else{
-			(tablaCuadruplas->ultima)->siguiente = cuadrupla;
-			tablaCuadruplas->ultima = cuadrupla; 
+		    // TODO: Habría que mostrar también la línea en la que se produce este error
+		    char* errorT = (char*)malloc(50*sizeof(char));
+		    sprintf(errorT, "Asignación de %s a un elemento %s", $3->tipo, tipoT);
+		    yyerror(errorT);
 		}
-		*/
 		};
 alternativa: T_SI expresion T_ENTONCES instrucciones lista_opciones T_FSI{
 		};
@@ -389,12 +529,51 @@ void yyerror(char const * error)
 {
     printf("ERROR: %s\n", error);
 }
+
+int* makelist(int nextquad){
+    int* lista = (int*)malloc(sizeof(int));
+    lista[0] = nextquad;
+    return lista;
+}
+
+int* merge(int* lista1, int* lista2){
+    int* listaFinal = (int*)malloc(sizeof(lista1) + sizeof(lista2));
+    int counter = 0;
+    for(int i = 0; i < sizeof(lista1)/sizeof(int); i++){
+	listaFinal[i] = lista1[i];
+	counter++;
+    }
+
+    for(int i = 0; i < sizeof(lista2)/sizeof(int);i++){
+	listaFinal[counter] = lista2[i];
+	counter++;
+    }
+    return listaFinal;
+}
+
+void backpatch(int* lista, int quad){
+}
+
+void creaCuadruplasOutput(){
+    Simbolo* simb = tablaSimbolos->primero;
+    while(simb!=NULL){
+	if (simb->entradaSalida == 2 || simb->entradaSalida == 3){
+	    generaCuadrupla("output", simb->id, 0, 0, tablaCuadruplas);
+	}
+	simb = simb->siguiente;
+    }
+}
+
+
 int main(void)
 {
 	tablaSimbolos = (TablaSimbolos*)malloc(sizeof(TablaSimbolos));
 	tablaCuadruplas = (TablaCuadruplas*)malloc(sizeof(TablaCuadruplas));
 
 	yyparse();
+	// Después de terminar el primer parseo es necesario crear las cuádruplas de output
+	creaCuadruplasOutput();
+
 	muestraTabla(*tablaSimbolos);
 	printf("\n\n");
 	muestraTablaCuadruplas(*tablaCuadruplas);

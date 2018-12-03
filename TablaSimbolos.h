@@ -12,6 +12,7 @@ typedef struct Simbolo
     int id;
     char* nombre;		// nombre que identifica a dicho símbolo
     char* tipo;			// tipo del símbolo, de momento es un string
+    short entradaSalida;	// 1 si es de entrada, 2 si es de salida, 3 si es ambas, 0 si no es ninguna
 }Simbolo;
 
 typedef struct TablaSimbolos

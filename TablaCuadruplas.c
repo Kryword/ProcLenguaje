@@ -14,7 +14,7 @@ void muestraTablaCuadruplas(TablaCuadruplas tabla){
 	}else{
 		Cuadrupla* puntero = tabla.primera;
 		while(puntero->siguiente != NULL){
-			printf("Operador: %s\tOperando1: %d\n", puntero->operador, puntero->operando1);
+			printf("||%12s||%13d||%13d||%13d||\n", puntero->operador, puntero->operando1, puntero->operando2, puntero->resultado);
 			puntero = puntero->siguiente;
 		}
 		printf("||%12s||%13d||%13d||%13d||\n", puntero->operador, puntero->operando1, puntero->operando2, puntero->resultado);

@@ -14,8 +14,8 @@ void insertar(TablaSimbolos* tabla, Simbolo* sim){
 	sim->siguiente = NULL;
 	if (tabla->primero == NULL){
 		tabla->primero = sim;
-		sim->id = 0;
-		tabla->ultimoId = 0;
+		sim->id = 1;
+		tabla->ultimoId = 1;
 	}else{
 		(tabla->ultimo)->siguiente = sim;
 		tabla->ultimoId++;
@@ -62,6 +62,7 @@ void muestraTabla(TablaSimbolos tabla){
 		Simbolo* puntero = tabla.primero;
 		while(puntero->siguiente != NULL){
 			printf("||%8d||%22s||%8s||\n", puntero->id, puntero->nombre, puntero->tipo);
+			//printf("%d", puntero->entradaSalida);
 			puntero = puntero->siguiente;
 		}
 		printf("||%8d||%22s||%8s||\n", puntero->id, puntero->nombre, puntero->tipo);
