@@ -9,6 +9,7 @@ void yyerror(char const *);
 int* merge(int* lista1, int* lista2);
 int* makeList(int nextquad);
 void backpatch(int* lista, int quad);
+Cuadrupla* buscarCuadrupla(int id);
 
 TablaSimbolos* tablaSimbolos;
 TablaCuadruplas* tablaCuadruplas;
@@ -530,28 +531,71 @@ void yyerror(char const * error)
     printf("ERROR: %s\n", error);
 }
 
+//TODO: Verificar que esto funciona siempre
 int* makelist(int nextquad){
-    int* lista = (int*)malloc(sizeof(int));
+    int *lista = (int*)malloc(sizeof(int));
     lista[0] = nextquad;
     return lista;
 }
 
+// TODO: Esta función no funciona correctamente
 int* merge(int* lista1, int* lista2){
-    int* listaFinal = (int*)malloc(sizeof(lista1) + sizeof(lista2));
+    int* listaFinal = (int*)malloc((sizeof(lista1) + sizeof(lista2)) * sizeof(int));
     int counter = 0;
-    for(int i = 0; i < sizeof(lista1)/sizeof(int); i++){
+    for(int i = 0; i < sizeof(lista1)/sizeof(int)-1; i++){
 	listaFinal[i] = lista1[i];
 	counter++;
     }
 
-    for(int i = 0; i < sizeof(lista2)/sizeof(int);i++){
+    for(int i = 0; i < sizeof(lista2)/sizeof(int)-1;i++){
 	listaFinal[counter] = lista2[i];
 	counter++;
     }
+    printf("Merge de listas: %d\n", counter);
+    printf("listaFinal[0] = %d\n", listaFinal[0]);
+    printf("listaFinal[1] = %d\n", listaFinal[1]);
+    printf("listaFinal[2] = %d\n", listaFinal[2]);
+    printf("listaFinal[3] = %d\n", listaFinal[3]);
+
     return listaFinal;
 }
 
+/*  
+ *   TODO: Preguntar como debería funcionar esto, de momento da errores debido al merge 
+ *	y a que desconozco como calcular la cantidad de elementos en el array de ints. 
+ *	Quizás sería conveniente crear una estructura nueva para estas listas.
+ */
 void backpatch(int* lista, int quad){
+    printf("%d\n", *lista);
+    for (int i = 0; i < sizeof(lista)/sizeof(lista[0]) - 1; i++){
+	printf("%d", lista[i]);
+	// Buscamos la cuadrupla a modificar
+	Cuadrupla *cuadrupla = buscarCuadrupla(lista[i]);
+	if (cuadrupla == NULL)
+	    printf("Cuadrupla no encontrada\n");
+	else
+	    printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
+    }
+}
+
+Cuadrupla* buscarCuadrupla(int id){
+    // Si es 0 devuelvo el primer elemnto
+    if (id == 0){
+	return tablaCuadruplas->primera;
+    }
+    //Si es igual a nextquad-1 devuelvo el último elemento
+    if (id == tablaCuadruplas->nextquad - 1){
+	return tablaCuadruplas->ultima;
+    }
+    Cuadrupla *cuadrupla = tablaCuadruplas->primera;
+
+    int counter = 0;
+    while (counter < id && cuadrupla!=NULL){
+	cuadrupla = cuadrupla->siguiente;
+	counter++;
+    }
+
+    return cuadrupla;
 }
 
 void creaCuadruplasOutput(){
@@ -577,4 +621,5 @@ int main(void)
 	muestraTabla(*tablaSimbolos);
 	printf("\n\n");
 	muestraTablaCuadruplas(*tablaCuadruplas);
+	backpatch(merge(makelist(1), merge(makelist(2), makelist(4))), 5);
 }
