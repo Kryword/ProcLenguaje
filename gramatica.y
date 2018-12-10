@@ -4,27 +4,37 @@
 #include "TablaCuadruplas.h"
 #include <string.h>
 #include "definiciones.h"
-int yylex(void);
-void yyerror(char const *);
-int* merge(int* lista1, int* lista2);
-int* makeList(int nextquad);
-void backpatch(int* lista, int quad);
-Cuadrupla* buscarCuadrupla(int id);
 
-TablaSimbolos* tablaSimbolos;
-TablaCuadruplas* tablaCuadruplas;
-
+/* Declaración de tipos */
 typedef struct Cola{
 	char* nombre;
 	struct Cola* siguiente;
 }Cola;
+typedef struct ListaEnteros{
+	int* lista;
+	int length;
+}ListaEnteros;
+
 typedef struct Expresion{
 	int place;
 	char* code;
 	char* tipo;
-	int* trueExpresion;
-	int* falseExpresion;
+	ListaEnteros* trueExpresion;
+	ListaEnteros* falseExpresion;
 }Expresion;
+
+/* Declaración de variables */
+TablaSimbolos* tablaSimbolos;
+TablaCuadruplas* tablaCuadruplas;
+
+/* Declaración de funciones */
+int yylex(void);
+void yyerror(char const *);
+void backpatch(ListaEnteros* listaQuads, int quad);
+Cuadrupla* buscarCuadrupla(int id);
+
+ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2);
+ListaEnteros* makelist(int nextquad);
 %}
 %union{
 	int entero;
@@ -33,6 +43,7 @@ typedef struct Expresion{
 	char** union_cadenas;
 	struct Cola* union_cola;
 	struct Expresion* union_expresion;
+	int quad;
 }
 /* Comienzo y final de Algoritmo */
 %token T_BALGORITMO
@@ -105,6 +116,7 @@ typedef struct Expresion{
 %type<entero>operando
 %type<union_expresion>expresion
 %type<union_expresion>exp
+%type<quad>M
 
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
@@ -271,6 +283,9 @@ decl_sal: T_SAL lista_d_var{
 		};
 
 /* Expresiones */
+M: {
+	$$ = tablaCuadruplas->nextquad;
+};
 
 exp: exp T_PLUS exp {
 		Simbolo* t = newTemp(tablaSimbolos);
@@ -408,15 +423,23 @@ exp: exp T_PLUS exp {
 		    generaCuadrupla("-uEntero", $2->place, 0, $$->place, tablaCuadruplas);
 		}
 		}
-	| exp T_BOOLY exp {
+	| exp T_BOOLY M exp {
 		// TODO: Queda por hacer esta parte, tema 6 página 11
 		// TODO: Preguntar por como funciona backpatch
 		/* Cabe destacar que estamos creando las expresiones booleanas de la forma que lo hace C, 
 		    es decir 0 es falso y 1 es verdadero, no creamos un nuevo tipo booleano. */
+		backpatch($1->trueExpresion, $3);
+		$$->falseExpresion = merge($1->falseExpresion, $4->falseExpresion);
+		$$->trueExpresion = $4->trueExpresion;
 		}
-	| exp T_BOOLO exp { 
+	| exp T_BOOLO M exp {
+		backpatch($1->falseExpresion, $3);
+		$$->trueExpresion = merge($1->trueExpresion, $4->trueExpresion);
+		$$->falseExpresion = $4->falseExpresion;
 		}
 	| T_NO exp {
+		$$->trueExpresion = $2->falseExpresion;
+		$$->falseExpresion = $2->trueExpresion;
 		}
 	| T_VERDADERO {
 		/* TODO: Preguntar como se representaría esto */
@@ -424,6 +447,10 @@ exp: exp T_PLUS exp {
 	| T_FALSO {
 		}
 	| expresion T_OPREL expresion {
+		$$->trueExpresion = makelist(tablaCuadruplas->nextquad);
+		$$->falseExpresion = makelist(tablaCuadruplas->nextquad + 1);
+		generaCuadrupla("ifgoto", $1->place, $3->place, 0, tablaCuadruplas);
+		generaCuadrupla("goto", 0, 0, 0, tablaCuadruplas);
 		};
 expresion: exp{
 		} 
@@ -532,31 +559,29 @@ void yyerror(char const * error)
 }
 
 //TODO: Verificar que esto funciona siempre
-int* makelist(int nextquad){
-    int *lista = (int*)malloc(sizeof(int));
-    lista[0] = nextquad;
-    return lista;
+ListaEnteros* makelist(int nextquad){
+    ListaEnteros* listaEnteros = (ListaEnteros*)malloc(sizeof(ListaEnteros));
+    listaEnteros->lista = (int*)malloc(sizeof(int));
+	listaEnteros->lista[0] = nextquad;
+	listaEnteros->length = 1;
+    return listaEnteros;
 }
 
 // TODO: Esta función no funciona correctamente
-int* merge(int* lista1, int* lista2){
-    int* listaFinal = (int*)malloc((sizeof(lista1) + sizeof(lista2)) * sizeof(int));
+ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2){
+	ListaEnteros* listaFinal = (ListaEnteros*)malloc(sizeof(ListaEnteros*));
+	listaFinal->length = lista1->length + lista2->length;
+	listaFinal->lista = (int*)malloc(listaFinal->length*sizeof(int));
     int counter = 0;
-    for(int i = 0; i < sizeof(lista1)/sizeof(int)-1; i++){
-	listaFinal[i] = lista1[i];
-	counter++;
+    for(int i = 0; i < lista1->length; i++){
+		listaFinal->lista[counter] = lista1->lista[i];
+		counter++;
     }
 
-    for(int i = 0; i < sizeof(lista2)/sizeof(int)-1;i++){
-	listaFinal[counter] = lista2[i];
-	counter++;
+    for(int i = 0; i < lista2->length;i++){
+		listaFinal->lista[counter] = lista2->lista[i];
+		counter++;
     }
-    printf("Merge de listas: %d\n", counter);
-    printf("listaFinal[0] = %d\n", listaFinal[0]);
-    printf("listaFinal[1] = %d\n", listaFinal[1]);
-    printf("listaFinal[2] = %d\n", listaFinal[2]);
-    printf("listaFinal[3] = %d\n", listaFinal[3]);
-
     return listaFinal;
 }
 
@@ -565,16 +590,15 @@ int* merge(int* lista1, int* lista2){
  *	y a que desconozco como calcular la cantidad de elementos en el array de ints. 
  *	Quizás sería conveniente crear una estructura nueva para estas listas.
  */
-void backpatch(int* lista, int quad){
-    printf("%d\n", *lista);
-    for (int i = 0; i < sizeof(lista)/sizeof(lista[0]) - 1; i++){
-	printf("%d", lista[i]);
-	// Buscamos la cuadrupla a modificar
-	Cuadrupla *cuadrupla = buscarCuadrupla(lista[i]);
-	if (cuadrupla == NULL)
-	    printf("Cuadrupla no encontrada\n");
-	else
-	    printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
+void backpatch(ListaEnteros* listaQuads, int quad){
+    for (int i = 0; i < listaQuads->length; i++){
+		// Buscamos la cuadrupla a modificar
+		Cuadrupla *cuadrupla = buscarCuadrupla(listaQuads->lista[i]);
+		cuadrupla->resultado = quad;
+		if (cuadrupla == NULL)
+	    	printf("Cuadrupla no encontrada\n");
+		else
+	    	printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
     }
 }
 
@@ -621,5 +645,4 @@ int main(void)
 	muestraTabla(*tablaSimbolos);
 	printf("\n\n");
 	muestraTablaCuadruplas(*tablaCuadruplas);
-	backpatch(merge(makelist(1), merge(makelist(2), makelist(4))), 5);
 }
