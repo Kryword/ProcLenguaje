@@ -5,6 +5,9 @@
 #include <string.h>
 #include "definiciones.h"
 
+/* defines */
+#define VACIO -1
+
 /* Declaración de tipos */
 typedef struct Cola{
 	char* nombre;
@@ -265,7 +268,7 @@ decl_ent: T_ENT lista_d_var{
 		Simbolo* simbolo = buscar(auxCola->nombre, tablaSimbolos->primero);
 		if(simbolo != NULL){
 		    simbolo->entradaSalida++;
-		    generaCuadrupla("input", simbolo->id, 0, 0, tablaCuadruplas);
+		    generaCuadrupla("input", simbolo->id, VACIO, VACIO, tablaCuadruplas);
 		}
 		auxCola = auxCola->siguiente;
 	    }while(auxCola!=NULL);
@@ -296,12 +299,12 @@ exp: exp T_PLUS exp {
 		    $$->tipo = "entero";
 		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $1->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("+Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("+Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
@@ -320,12 +323,12 @@ exp: exp T_PLUS exp {
 		    $$->tipo = "entero";
 		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $1->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("-Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("-Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
@@ -343,12 +346,12 @@ exp: exp T_PLUS exp {
 		    $$->tipo = "entero";
 		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $1->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("*Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
 		    modifica_tipo_TS(t, "real");
-		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("*Real", $$->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
@@ -363,16 +366,16 @@ exp: exp T_PLUS exp {
 		$$->tipo = "real";
 		modifica_tipo_TS(t, "real");
 		if (strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "entero")==0){
-		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $1->place, VACIO, $$->place, tablaCuadruplas);
 		    Simbolo* t2 = newTemp(tablaSimbolos);
 		    modifica_tipo_TS(t2, "real");
-		    generaCuadrupla("inttoreal", $3->place, 0, t2->id, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, t2->id, tablaCuadruplas);
 		    generaCuadrupla("/", $$->place, t2->id, $$->place, tablaCuadruplas);
 		}else if(strcmp($1->tipo, "entero")==0 && strcmp($3->tipo, "real")==0){
-		    generaCuadrupla("inttoreal", $1->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $1->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("/", $$->place, $3->place, $$->place, tablaCuadruplas);
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "entero")==0){
-		    generaCuadrupla("inttoreal", $3->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, $$->place, tablaCuadruplas);
 		    generaCuadrupla("/", $$->place, $3->place, $$->place, tablaCuadruplas);
 		}else if(strcmp($1->tipo, "real")==0 && strcmp($3->tipo, "real")==0){
 		    modifica_tipo_TS(t, "real");
@@ -418,9 +421,9 @@ exp: exp T_PLUS exp {
 		modifica_tipo_TS(t, $2->tipo);
 		$$->tipo = $2->tipo;
 		if (strcmp($2->tipo, "real")==0){
-		    generaCuadrupla("-uReal", $2->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("-uReal", $2->place, VACIO, $$->place, tablaCuadruplas);
 		}else if (strcmp($2->tipo, "entero")==0){
-		    generaCuadrupla("-uEntero", $2->place, 0, $$->place, tablaCuadruplas);
+		    generaCuadrupla("-uEntero", $2->place, VACIO, $$->place, tablaCuadruplas);
 		}
 		}
 	| exp T_BOOLY M exp {
@@ -449,8 +452,8 @@ exp: exp T_PLUS exp {
 	| expresion T_OPREL expresion {
 		$$->trueExpresion = makelist(tablaCuadruplas->nextquad);
 		$$->falseExpresion = makelist(tablaCuadruplas->nextquad + 1);
-		generaCuadrupla("ifgoto", $1->place, $3->place, 0, tablaCuadruplas);
-		generaCuadrupla("goto", 0, 0, 0, tablaCuadruplas);
+		generaCuadrupla("ifgoto", $1->place, $3->place, VACIO, tablaCuadruplas);
+		generaCuadrupla("goto", VACIO, VACIO, VACIO, tablaCuadruplas);
 		};
 expresion: exp{
 		} 
@@ -494,10 +497,10 @@ asignacion: operando T_ASIGNACION expresion{
 		printf("\t\tAsignando %s a %s\n", tipoT, $3->tipo);
 		
 		if(strcmp(tipoT, $3->tipo)==0){
-		    generaCuadrupla(":=", $3->place, 0, $1, tablaCuadruplas);
+		    generaCuadrupla(":=", $3->place, VACIO, $1, tablaCuadruplas);
 		}else if(strcmp(tipoT, "real")==0 && strcmp($3->tipo, "entero")==0){
-		    generaCuadrupla("inttoreal", $3->place, 0, $3->place, tablaCuadruplas);
-		    generaCuadrupla(":=", $3->place, 0, $1, tablaCuadruplas);
+		    generaCuadrupla("inttoreal", $3->place, VACIO, $3->place, tablaCuadruplas);
+		    generaCuadrupla(":=", $3->place, VACIO, $1, tablaCuadruplas);
 		}else{
 		    // TODO: Habría que mostrar también la línea en la que se produce este error
 		    char* errorT = (char*)malloc(50*sizeof(char));
@@ -626,7 +629,7 @@ void creaCuadruplasOutput(){
     Simbolo* simb = tablaSimbolos->primero;
     while(simb!=NULL){
 	if (simb->entradaSalida == 2 || simb->entradaSalida == 3){
-	    generaCuadrupla("output", simb->id, 0, 0, tablaCuadruplas);
+	    generaCuadrupla("output", simb->id, VACIO, VACIO, tablaCuadruplas);
 	}
 	simb = simb->siguiente;
     }

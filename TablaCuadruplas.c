@@ -18,6 +18,8 @@ void muestraTablaCuadruplas(TablaCuadruplas tabla){
 			puntero = puntero->siguiente;
 		}
 		printf("||%12d||%13s||%13d||%13d||%13d||\n", puntero->id, puntero->operador, puntero->operando1, puntero->operando2, puntero->resultado);
+		printf("||////////////////////////////////////////////////////////////////////////||\n");
+		printf("|| Nota: -1 significa que no hay valor asignado para dicho campo          ||\n");
 		printf("////////////////////////////////////////////////////////////////////////////\n");
 	}
 }
