@@ -24,6 +24,7 @@ typedef struct Expresion{
 	char* tipo;
 	ListaEnteros* trueExpresion;
 	ListaEnteros* falseExpresion;
+	ListaEnteros* next;
 }Expresion;
 
 /* Declaración de variables */
@@ -38,6 +39,7 @@ Cuadrupla* buscarCuadrupla(int id);
 
 ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2);
 ListaEnteros* makelist(int nextquad);
+ListaEnteros* makeEmptyList();
 %}
 %union{
 	int entero;
@@ -46,6 +48,7 @@ ListaEnteros* makelist(int nextquad);
 	char** union_cadenas;
 	struct Cola* union_cola;
 	struct Expresion* union_expresion;
+	struct ListaEnteros* union_lista;
 	int quad;
 }
 /* Comienzo y final de Algoritmo */
@@ -120,6 +123,13 @@ ListaEnteros* makelist(int nextquad);
 %type<union_expresion>expresion
 %type<union_expresion>exp
 %type<quad>M
+%type<union_lista>instrucciones
+%type<union_lista>instruccion
+%type<union_expresion>alternativa
+%type<union_expresion>iteracion
+%type<union_expresion>it_cota_exp
+%type<union_expresion>lista_opciones
+%type<union_expresion>N
 
 %%
 /* Comienzo de algoritmo y definición del axioma */ 
@@ -405,6 +415,12 @@ exp: exp T_PLUS exp {
 	| T_APARENTESIS exp T_CPARENTESIS {
 		$$->place = $2->place;
 		$$->tipo = $2->tipo;
+		if (strcmp($2->tipo, "bool") == 0){
+		    $$->trueExpresion = makelist(tablaCuadruplas->nextquad);
+		    $$->falseExpresion = makelist(tablaCuadruplas->nextquad);
+		    generaCuadrupla("ifgoto", $2->place, VACIO, VACIO, tablaCuadruplas);
+		    generaCuadrupla("goto", VACIO, VACIO, VACIO, tablaCuadruplas);
+		}
 		}
 	| operando{
 		$$ = (Expresion*) malloc(sizeof(Expresion));
@@ -432,15 +448,19 @@ exp: exp T_PLUS exp {
 		/* Cabe destacar que estamos creando las expresiones booleanas de la forma que lo hace C, 
 		    es decir 0 es falso y 1 es verdadero, no creamos un nuevo tipo booleano. */
 		backpatch($1->trueExpresion, $3);
+		$$->tipo = strdup("bool");
+		printf("llego hasta aquí!!\n\n");
 		$$->falseExpresion = merge($1->falseExpresion, $4->falseExpresion);
 		$$->trueExpresion = $4->trueExpresion;
 		}
 	| exp T_BOOLO M exp {
 		backpatch($1->falseExpresion, $3);
+		$$->tipo = strdup("bool");
 		$$->trueExpresion = merge($1->trueExpresion, $4->trueExpresion);
 		$$->falseExpresion = $4->falseExpresion;
 		}
 	| T_NO exp {
+		$$->tipo = strdup("bool");
 		$$->trueExpresion = $2->falseExpresion;
 		$$->falseExpresion = $2->trueExpresion;
 		}
@@ -450,6 +470,7 @@ exp: exp T_PLUS exp {
 	| T_FALSO {
 		}
 	| expresion T_OPREL expresion {
+		$$->tipo = strdup("bool");
 		$$->trueExpresion = makelist(tablaCuadruplas->nextquad);
 		$$->falseExpresion = makelist(tablaCuadruplas->nextquad + 1);
 		generaCuadrupla("ifgoto", $1->place, $3->place, VACIO, tablaCuadruplas);
@@ -475,19 +496,27 @@ operando: T_IDENTIFICADOR{
 		};
 
 /* Instrucciones */
-instrucciones: instruccion T_SEC instrucciones {
+instrucciones: instruccion T_SEC M instrucciones {
+		if($1->length > 0){
+		    backpatch($1, $3);
+		}
+		$$ = merge($1, $4);
 		}
 	| instruccion{
+		$$ = makeEmptyList();
 		};
 instruccion: T_CONTINUAR{
 		} 
 	| asignacion {
+		$$ = makelist(tablaCuadruplas->nextquad-1);
 		printf("\tInstrucción de asignación \n");
 	}
 	| alternativa {
+		$$ = $1->next;
 		printf("\tInstrucción alternativa\n");
 	}
 	| iteracion {
+		$$ = $1->next;
 		printf("\tInstrucción de iteracion\n");
 	}
 	| accion_ll{
@@ -508,17 +537,45 @@ asignacion: operando T_ASIGNACION expresion{
 		    yyerror(errorT);
 		}
 		};
-alternativa: T_SI expresion T_ENTONCES instrucciones lista_opciones T_FSI{
-		};
-lista_opciones: T_SINO expresion T_ENTONCES instrucciones lista_opciones {
+alternativa: T_SI expresion T_ENTONCES M instrucciones M lista_opciones T_FSI{
+		backpatch($2->trueExpresion, $4);
+		backpatch($2->falseExpresion, $6);
+		if ($5->length > 0){
+		    $$->next = merge($2->falseExpresion, $5);
+		}else{
+		    $$->next = merge($2->falseExpresion, makelist($6));
+		    generaCuadrupla("goto", VACIO, VACIO, VACIO, tablaCuadruplas);
 		}
-	| /* empty */{
-		};
+	    };
+lista_opciones: T_SINO expresion T_ENTONCES M instrucciones N M lista_opciones{
+		backpatch($2->trueExpresion, $4);
+		backpatch($2->falseExpresion, $7);
+		if ($5->length > 0){
+		    $$->next = merge(merge($5, $6->next), $8->next);
+		}else{
+		    $$->next = merge(merge($8->next, $6->next), makelist(tablaCuadruplas->nextquad));
+		    generaCuadrupla("goto", VACIO, VACIO, VACIO, tablaCuadruplas);
+		}
+	      }
+	    | /* empty */{
+		$$->next = makeEmptyList();
+	    };
+N: /*empty*/{
+	$$->next = makelist(tablaCuadruplas->nextquad);
+	generaCuadrupla("goto", VACIO, VACIO, VACIO, tablaCuadruplas);
+    };
 iteracion: it_cota_fija {
 		} 
 	| it_cota_exp{
 		};
-it_cota_exp: T_MIENTRAS expresion T_HACER instrucciones T_FMIENTRAS{
+it_cota_exp: T_MIENTRAS M expresion T_HACER M instrucciones T_FMIENTRAS{
+		    backpatch($3->trueExpresion, $5);
+		    if ($6->length > 0){
+			backpatch($6, $2);
+		    }else{
+			generaCuadrupla("goto", VACIO, VACIO, $2, tablaCuadruplas);
+		    }
+		    $$->next = $3->falseExpresion;
 		};
 it_cota_fija: T_PARA T_IDENTIFICADOR T_ASIGNACION expresion T_HASTA expresion T_HACER instrucciones T_FPARA{
 		};
@@ -561,29 +618,35 @@ void yyerror(char const * error)
     printf("ERROR: %s\n", error);
 }
 
-//TODO: Verificar que esto funciona siempre
 ListaEnteros* makelist(int nextquad){
     ListaEnteros* listaEnteros = (ListaEnteros*)malloc(sizeof(ListaEnteros));
     listaEnteros->lista = (int*)malloc(sizeof(int));
-	listaEnteros->lista[0] = nextquad;
-	listaEnteros->length = 1;
+    listaEnteros->lista[0] = nextquad;
+    listaEnteros->length = 1;
     return listaEnteros;
 }
 
-// TODO: Esta función no funciona correctamente
+// Genera una lista vacía
+ListaEnteros* makeEmptyList(){
+    ListaEnteros* listaEnteros = (ListaEnteros*)malloc(sizeof(ListaEnteros));
+    listaEnteros->lista = (int*)malloc(sizeof(int));
+    listaEnteros->length = 0;
+    return listaEnteros;
+}
+
 ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2){
-	ListaEnteros* listaFinal = (ListaEnteros*)malloc(sizeof(ListaEnteros*));
-	listaFinal->length = lista1->length + lista2->length;
-	listaFinal->lista = (int*)malloc(listaFinal->length*sizeof(int));
+    ListaEnteros* listaFinal = (ListaEnteros*)malloc(sizeof(ListaEnteros));
+    listaFinal->length = lista1->length + lista2->length;
+    listaFinal->lista = (int*)malloc(listaFinal->length*sizeof(int));
     int counter = 0;
     for(int i = 0; i < lista1->length; i++){
-		listaFinal->lista[counter] = lista1->lista[i];
-		counter++;
+	listaFinal->lista[counter] = lista1->lista[i];
+	counter++;
     }
 
     for(int i = 0; i < lista2->length;i++){
-		listaFinal->lista[counter] = lista2->lista[i];
-		counter++;
+	listaFinal->lista[counter] = lista2->lista[i];
+	counter++;
     }
     return listaFinal;
 }
@@ -595,14 +658,16 @@ ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2){
  */
 void backpatch(ListaEnteros* listaQuads, int quad){
     for (int i = 0; i < listaQuads->length; i++){
-		// Buscamos la cuadrupla a modificar
-		Cuadrupla *cuadrupla = buscarCuadrupla(listaQuads->lista[i]);
-		cuadrupla->resultado = quad;
-		if (cuadrupla == NULL)
-	    	printf("Cuadrupla no encontrada\n");
-		else
-	    	printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
+	// Buscamos la cuadrupla a modificar
+	Cuadrupla *cuadrupla = buscarCuadrupla(listaQuads->lista[i]);
+	if (cuadrupla == NULL){
+	   printf("Cuadrupla no encontrada\n");
+	}else{
+	    cuadrupla->resultado = quad;
+	    printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
+	}
     }
+    printf("Back patch completado con éxito\n");
 }
 
 Cuadrupla* buscarCuadrupla(int id){
