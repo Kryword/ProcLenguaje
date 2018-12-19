@@ -1,21 +1,17 @@
-algoritmo orden3;
-	ent a, b, c: entero; sal max, min, med: entero;
-{Prec: a = A AND b = B AND c = C}
-	si a >= b y a >= c ->
-		max := a;
-		si b >= c ->med := b; min := c
-		[] b <c ->med := c; min := b
-		fsi
-	[] b >= a y b >= c ->
-		max := b;
-		si a >= c ->med := a; min := c
-		[] a <c ->med := c; min := a
-		fsi
-	[] c >= b y c >= a ->
-		max := c;
-		si b >= a ->med := b; min := a
-		[] b <a ->med := a; min := b
-		fsi
-	fsi
-{Post: a=A AND b = B AND c= C ...}
+algoritmo sumacomb;
+	ent n, m: entero;
+	sal suma: entero;
+{Prec: n= N AND m = M AND M >= N >0}
+var
+	i, comb: entero;
+fvar
+	i:= i;
+	suma:= comb;
+	comb:= m;
+	mientras i <n hacer
+		suma := suma + comb;
+		comb := comb * (m - i) div (i);
+		i := i
+	fmientras
+{Post: n =N AND suma = SUMATORIO(i=1..N)(M sobre i)}
 falgoritmo

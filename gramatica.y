@@ -3,7 +3,6 @@
 #include "TablaSimbolos.h"
 #include "TablaCuadruplas.h"
 #include <string.h>
-#include "definiciones.h"
 
 /* defines */
 #define VACIO -1
@@ -322,7 +321,6 @@ exp: exp T_PLUS exp {
 		    generaCuadrupla("+Real", $1->place, $3->place, $$->place, tablaCuadruplas);
 		    $$->tipo = "real";
 		}
-		printf("\t\tSuma de %s y %s\n", $1->tipo, $3->tipo);
 		}
 	| exp T_MINUS exp{
 		Simbolo* t = newTemp(tablaSimbolos);
@@ -426,7 +424,6 @@ exp: exp T_PLUS exp {
 		$$ = (Expresion*) malloc(sizeof(Expresion));
 		$$->place = $1;
 		$$->tipo = strdup(consulta_tipo_TS($1, tablaSimbolos->primero));
-		printf("\t\tOperando tipo: %s\n", $$->tipo);
 		}
 	| T_LITERAL_NUMERICO {
 		
@@ -443,13 +440,10 @@ exp: exp T_PLUS exp {
 		}
 		}
 	| exp T_BOOLY M exp {
-		// TODO: Queda por hacer esta parte, tema 6 página 11
-		// TODO: Preguntar por como funciona backpatch
 		/* Cabe destacar que estamos creando las expresiones booleanas de la forma que lo hace C, 
 		    es decir 0 es falso y 1 es verdadero, no creamos un nuevo tipo booleano. */
 		backpatch($1->trueExpresion, $3);
 		$$->tipo = strdup("bool");
-		printf("llego hasta aquí!!\n\n");
 		$$->falseExpresion = merge($1->falseExpresion, $4->falseExpresion);
 		$$->trueExpresion = $4->trueExpresion;
 		}
@@ -465,7 +459,6 @@ exp: exp T_PLUS exp {
 		$$->falseExpresion = $2->trueExpresion;
 		}
 	| T_VERDADERO {
-		/* TODO: Preguntar como se representaría esto */
 		}
 	| T_FALSO {
 		}
@@ -483,9 +476,6 @@ expresion: exp{
 
 operando: T_IDENTIFICADOR{
 		int i = buscarId($1, tablaSimbolos->primero);
-		if(i != 0){
-			printf("\t\tEncontrado identificador: %d\n", i);
-		}
 		$$ = i;
 		} 
 	| operando T_PUNTO operando {
@@ -651,23 +641,14 @@ ListaEnteros* merge(ListaEnteros* lista1, ListaEnteros* lista2){
     return listaFinal;
 }
 
-/*  
- *   TODO: Preguntar como debería funcionar esto, de momento da errores debido al merge 
- *	y a que desconozco como calcular la cantidad de elementos en el array de ints. 
- *	Quizás sería conveniente crear una estructura nueva para estas listas.
- */
 void backpatch(ListaEnteros* listaQuads, int quad){
     for (int i = 0; i < listaQuads->length; i++){
 	// Buscamos la cuadrupla a modificar
 	Cuadrupla *cuadrupla = buscarCuadrupla(listaQuads->lista[i]);
-	if (cuadrupla == NULL){
-	   printf("Cuadrupla no encontrada\n");
-	}else{
+	if (cuadrupla != NULL){
 	    cuadrupla->resultado = quad;
-	    printf("\t\tEncontrada cuadrupla %d:%s\n", cuadrupla->id, cuadrupla->operador);
 	}
     }
-    printf("Back patch completado con éxito\n");
 }
 
 Cuadrupla* buscarCuadrupla(int id){

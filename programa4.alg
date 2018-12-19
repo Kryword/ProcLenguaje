@@ -1,23 +1,41 @@
-algoritmo restaAños;
-    ent n, m: entero;
-    sal años: entero;
-{Prec: n=N AND m=M AND M >= 0 AND N >= 0}
-var 
-    añoAnterior, añoFinal:entero;
-    tablaAños: tabla[1..N] de entero;
+algoritmo programa5;
+ent a, b: entero;
+{Prec: Precondicion}
+var
+	aux:entero;
+	tup:tupla prueba:entero; prueba2:real; ftupla;
+	c:real;
 fvar
-    
-    {Este programa demuestra el uso de ñ y comentarios
-    y también el uso de algún tipo, algunas variables no se usan,
-    simplemente están para demostrar la potencia del scanner}
+	{c:=b;}
+	aux:=-b;
+	aux:=a+b;
+	a:=aux+b;
+	c:=aux+c;
+	c:=c+c;
+	c:=c+aux;
 
-    si n > m -> 
-	añoAnterior := m; 
-	añoFinal := n
-    [] n <= m ->
-	añoAnterior := n;
-	añoFinal := m
-    fsi;
-    años := añoFinal - añoAnterior
-{Post: n = N AND m = M AND años = |M - N|}
+	{expresiones de multiplicación}
+	a:=a*a;
+	c:=a*c;
+	c:=c*a;
+	c:=c*c;
+
+	{Expresiones de división}
+	a:=a/a;
+	c:=a/c;
+	c:=c/a;
+	c:=c*c;
+
+	{Expresiones de módulo}
+	a:=a mod b;
+
+	{Expresión división entera}
+	a:=a div b;
+
+	{Error de compilación por asignación de tipos incorrectos}
+	a:=c;
+
+	{Expresión relativamente compleja}
+	c:=a+b-a/c*c
+{Post: Postcondición}
 falgoritmo

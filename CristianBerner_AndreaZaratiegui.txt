@@ -23,11 +23,9 @@ será el archivo a.out
 ## Ejecución de ejemplos
 
 Por último le comento que los archivos programaX.alg son programas de ejemplo
-que nuestro scanner soporta. Los tres primeros son los mismos que en el
-documento de prácticas, el último es uno que hemos creado nosotros para
-demostrar como funcionan algunas cosas como los comentarios y las Ñs.
+que nuestro scanner soporta. 
 
-Para ejecutar estos programas basta con escribir ./a.out programaX.alg siendo
+Para ejecutar estos programas basta con escribir ./a.out < programaX.alg siendo
 X el número del programa a escanear. 
 
 ## Clean

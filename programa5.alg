@@ -1,41 +1,19 @@
-algoritmo programa5;
-ent a, b: entero;
-{Prec: Precondicion}
-var
-	aux:entero;
-	tup:tupla prueba:entero; prueba2:real; ftupla;
-	c:real;
+algoritmo restaAños;
+    ent n, m: entero;
+    sal años: entero;
+{Prec: n=N AND m=M AND M >= 0 AND N >= 0}
+var 
+    añoAnterior, añoFinal:entero;
 fvar
-	{c:=b;}
-	aux:=-b;
-	aux:=a+b;
-	a:=aux+b;
-	c:=aux+c;
-	c:=c+c;
-	c:=c+aux;
-
-	{expresiones de multiplicación}
-	a:=a*a;
-	c:=a*c;
-	c:=c*a;
-	c:=c*c;
-
-	{Expresiones de división}
-	a:=a/a;
-	c:=a/c;
-	c:=c/a;
-	c:=c*c;
-
-	{Expresiones de módulo}
-	a:=a mod b;
-
-	{Expresión división entera}
-	a:=a div b;
-
-	{Error de compilación por asignación de tipos incorrectos}
-	a:=c;
-
-	{Expresión relativamente compleja}
-	c:=a+b-a/c*c
-{Post: Postcondición}
+    si añoAnterior > añoAnterior->
+	años := añoFinal
+    [] añoAnterior < añoAnterior->
+	años := añoAnterior;
+	si años>años->
+	    años:=años
+	fsi
+    [] añoAnterior = añoAnterior->
+	años:=añoFinal
+    fsi
+{Post: n = N AND m = M AND años = |M - N|}
 falgoritmo
