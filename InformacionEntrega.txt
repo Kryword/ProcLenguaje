@@ -1,0 +1,43 @@
+// ¿Qué habéis conseguido que haga vuestro compilador?
+    Nuestro compilador es capaz de compilar código que contiene instrucciones
+    aritméticas e instrucciones booleanas. También entiende como compilar ifs
+    y fors.
+    Las expresiones aritméticas las compila perfectamente, mientras que la
+    parte de booleanas no está del todo perfecta, es lo último que hemos hecho
+    y creo que podría mejorarla un poco más, no para esta entrega
+    desgraciadamente.
+
+    Además, el compilador a parte de crear las cuádruplas correspondientes a
+    las diferentes instrucciones aritméticas, booleanas y de control de flujo
+    también añade las nuevas variables a una tabla de símbolos, con su
+    respectivo tipo e información adicional necesaria para poder buscarlas
+    cuando sean necesarias.
+
+// ¿Qué pasos hay que dar para comprobar vuestro trabajo?
+    En principio no debería haber una razón de modificar el Makefile, he
+    transformado la regla -lfl a -ll como habías comentado.
+
+    Para comprobar basta con escribir "make" dentro de la carpeta donde se
+    encuentra el archivo de flex y el de bison junto con las librerías de
+    tablas y el makefile.
+
+    Una vez compilado se pueden ejecutar pasar por el compilador los
+    diferentes programas de dos formas:
+	Bien escribiendo "./a.out < programaX.alg" donde x es el número del
+	programa que se quiere verificar.
+	
+	O bien escribiendo "make X" donde x es el número del programa que se
+	quiere verificar.
+
+    Una vez finaliza el compilador se muestran dos tablas, una de la tabla de
+    símbolos y otra de la tabla de cuádruplas. A tener en cuenta es que es
+    posible que la parte de generación del código con gotos en el caso de el
+    control de flujo, es posible que no esté del todo correcta, esta parte la
+    he hecho esta semana y en algunos momentos he ido más rápido de lo que
+    debía, soy consciente de ello.
+
+// ¿Qué procentaje de trabajo es imputable a cada uno de los componentes del
+    grupo?
+
+    Cristian Berner 75%
+    Andrea Zaratiegui 25%
